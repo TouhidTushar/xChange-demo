@@ -8,67 +8,67 @@ import {
 import { Play_400Regular } from "@expo-google-fonts/play";
 import colors from "../colors";
 
-const FadeInView = (props) => {
-  const fadeAnim = useRef(new Animated.Value(0)).current;
-  const scaleAnim = useRef(new Animated.Value(0)).current;
+// const FadeInView = (props) => {
+//   const fadeAnim = useRef(new Animated.Value(0)).current;
+//   const scaleAnim = useRef(new Animated.Value(0)).current;
 
-  useEffect(() => {
-    Animated.timing(fadeAnim, {
-      toValue: 1,
-      duration: 1500,
-      useNativeDriver: true,
-    }).start();
-    Animated.timing(scaleAnim, {
-      toValue: 1,
-      duration: 1500,
-      useNativeDriver: true,
-    }).start();
-  }, [fadeAnim]);
+//   useEffect(() => {
+//     Animated.timing(fadeAnim, {
+//       toValue: 1,
+//       duration: 1500,
+//       useNativeDriver: true,
+//     }).start();
+//     Animated.timing(scaleAnim, {
+//       toValue: 1,
+//       duration: 1500,
+//       useNativeDriver: true,
+//     }).start();
+//   }, [fadeAnim]);
 
-  return (
-    <Animated.View
-      style={{
-        ...props.style,
-        opacity: fadeAnim,
-        transform: [{ scale: scaleAnim }],
-      }}
-    >
-      {props.children}
-    </Animated.View>
-  );
-};
+//   return (
+//     <Animated.View
+//       style={{
+//         ...props.style,
+//         opacity: fadeAnim,
+//         transform: [{ scale: scaleAnim }],
+//       }}
+//     >
+//       {props.children}
+//     </Animated.View>
+//   );
+// };
 
-const SlideInView = (props) => {
-  const slideAnim = useRef(new Animated.Value(props.alt ? 100 : -100)).current;
-  const fadeAnim = useRef(new Animated.Value(0)).current;
+// const SlideInView = (props) => {
+//   const slideAnim = useRef(new Animated.Value(props.alt ? 100 : -100)).current;
+//   const fadeAnim = useRef(new Animated.Value(0)).current;
 
-  useEffect(() => {
-    Animated.timing(slideAnim, {
-      toValue: 0,
-      duration: 1500,
-      useNativeDriver: true,
-    }).start();
-    Animated.timing(fadeAnim, {
-      toValue: 1,
-      duration: 1500,
-      useNativeDriver: true,
-    }).start();
-  }, [slideAnim, fadeAnim]);
+//   useEffect(() => {
+//     Animated.timing(slideAnim, {
+//       toValue: 0,
+//       duration: 1500,
+//       useNativeDriver: true,
+//     }).start();
+//     Animated.timing(fadeAnim, {
+//       toValue: 1,
+//       duration: 1500,
+//       useNativeDriver: true,
+//     }).start();
+//   }, [slideAnim, fadeAnim]);
 
-  return (
-    <Animated.View
-      style={{
-        ...props.style,
-        transform: [{ translateX: slideAnim }],
-        opacity: fadeAnim,
-      }}
-    >
-      {props.children}
-    </Animated.View>
-  );
-};
+//   return (
+//     <Animated.View
+//       style={{
+//         ...props.style,
+//         transform: [{ translateX: slideAnim }],
+//         opacity: fadeAnim,
+//       }}
+//     >
+//       {props.children}
+//     </Animated.View>
+//   );
+// };
 
-function WelcomeScreen({ navigation, props }) {
+function ListingScreen({ navigation, props }) {
   let [fontsLoaded] = useFonts({
     KaushanScript_400Regular,
     Play_400Regular,
@@ -79,21 +79,10 @@ function WelcomeScreen({ navigation, props }) {
   } else {
     return (
       <View style={styles.background}>
-        <FadeInView style={styles.logoContainer}>
-          <Text style={styles.logo}>xChange</Text>
+        <View style={styles.logoContainer}>
+          <Text style={styles.logo}>Listings</Text>
           <Text style={styles.slogan}>...a place for used goods</Text>
-        </FadeInView>
-        <SlideInView style={styles.listingButton} alt>
-          <Text
-            style={styles.buttonText}
-            onPress={() => navigation.navigate("tabs")}
-          >
-            view listings
-          </Text>
-        </SlideInView>
-        <SlideInView style={styles.loginButton}>
-          <Text style={styles.buttonText}>login</Text>
-        </SlideInView>
+        </View>
       </View>
     );
   }
@@ -166,4 +155,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default WelcomeScreen;
+export default ListingScreen;
