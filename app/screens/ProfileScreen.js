@@ -9,7 +9,7 @@ import { Play_400Regular } from "@expo-google-fonts/play";
 import colors from "../colors";
 import NavigationTab from "../components/NavigationTab";
 
-const ListingScreen = ({ navigation, props }) => {
+const ProfileScreen = ({ navigation, props }) => {
   let [fontsLoaded] = useFonts({
     KaushanScript_400Regular,
     Play_400Regular,
@@ -21,7 +21,7 @@ const ListingScreen = ({ navigation, props }) => {
     return (
       <View style={styles.background}>
         <View style={styles.logoContainer}>
-          <Text style={styles.logo}>Listings</Text>
+          <Text style={styles.logo}>Profile</Text>
         </View>
         <NavigationTab data={navigation} />
       </View>
@@ -95,4 +95,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default ListingScreen;
+export default ProfileScreen;

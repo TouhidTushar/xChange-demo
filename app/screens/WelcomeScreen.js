@@ -68,7 +68,7 @@ const SlideInView = (props) => {
   );
 };
 
-function WelcomeScreen({ navigation, props }) {
+const WelcomeScreen = ({ navigation, props }) => {
   let [fontsLoaded] = useFonts({
     KaushanScript_400Regular,
     Play_400Regular,
@@ -83,21 +83,28 @@ function WelcomeScreen({ navigation, props }) {
           <Text style={styles.logo}>xChange</Text>
           <Text style={styles.slogan}>...a place for used goods</Text>
         </FadeInView>
-        <SlideInView style={styles.listingButton} alt>
+
+        <SlideInView style={styles.listingButtonWrapper} alt>
           <Text
-            style={styles.buttonText}
-            onPress={() => navigation.navigate("tabs")}
+            style={{ ...styles.buttonText, color: colors.contrast }}
+            onPress={() => navigation.navigate("listings")}
           >
             view listings
           </Text>
         </SlideInView>
-        <SlideInView style={styles.loginButton}>
-          <Text style={styles.buttonText}>login</Text>
+
+        <SlideInView style={styles.loginButtonWrapper}>
+          <Text
+            style={styles.buttonText}
+            onPress={() => navigation.navigate("login")}
+          >
+            login
+          </Text>
         </SlideInView>
       </View>
     );
   }
-}
+};
 
 const styles = StyleSheet.create({
   background: {
@@ -125,15 +132,15 @@ const styles = StyleSheet.create({
     bottom: 0,
     paddingLeft: 5,
   },
-  listingButton: {
+  listingButtonWrapper: {
     width: "60%",
     height: 50,
-    backgroundColor: colors.primary,
+    backgroundColor: colors.secondary,
     borderRadius: 10,
     marginBottom: 20,
     alignItems: "center",
     justifyContent: "center",
-    shadowColor: colors.secondary,
+    shadowColor: colors.contrast,
     shadowOffset: {
       width: 0,
       height: 4,
@@ -142,15 +149,15 @@ const styles = StyleSheet.create({
     shadowRadius: 5,
     elevation: 6,
   },
-  loginButton: {
+  loginButtonWrapper: {
     width: "60%",
     height: 50,
-    backgroundColor: colors.secondary,
+    backgroundColor: colors.primary,
     borderRadius: 10,
     marginBottom: 20,
     alignItems: "center",
     justifyContent: "center",
-    shadowColor: colors.secondary,
+    shadowColor: colors.contrast,
     shadowOffset: {
       width: 0,
       height: 4,
@@ -163,6 +170,10 @@ const styles = StyleSheet.create({
     color: colors.accent,
     fontSize: 22,
     fontFamily: "Play_400Regular",
+    height: "100%",
+    width: "100%",
+    textAlignVertical: "center",
+    textAlign: "center",
   },
 });
 
