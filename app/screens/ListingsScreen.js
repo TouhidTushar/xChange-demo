@@ -1,32 +1,74 @@
-import React, { useRef, useEffect } from "react";
-import { Animated, StyleSheet, Text, View } from "react-native";
-import AppLoading from "expo-app-loading";
+import React, { useRef, useState, useEffect } from "react";
 import {
-  useFonts,
-  KaushanScript_400Regular,
-} from "@expo-google-fonts/kaushan-script";
-import { Play_400Regular } from "@expo-google-fonts/play";
+  Animated,
+  StyleSheet,
+  Text,
+  View,
+  FlatList,
+  Pressable,
+  TextInput,
+  Image,
+  Dimensions,
+} from "react-native";
+import { ScrollView } from "react-native-gesture-handler";
+import { useSelector } from "react-redux";
 import colors from "../colors";
 import NavigationTab from "../components/NavigationTab";
 
-const ListingScreen = ({ navigation, props }) => {
-  let [fontsLoaded] = useFonts({
-    KaushanScript_400Regular,
-    Play_400Regular,
-  });
+const SlideInView = (props) => {
+  const dim = Dimensions.get("screen").height;
+  const slideAnim = useRef(new Animated.Value(0)).current;
 
-  if (!fontsLoaded) {
-    return <AppLoading />;
-  } else {
-    return (
-      <View style={styles.background}>
-        <View style={styles.logoContainer}>
-          <Text style={styles.logo}>Listings</Text>
-        </View>
-        <NavigationTab data={navigation} />
-      </View>
-    );
-  }
+  useEffect(() => {
+    Animated.timing(slideAnim, {
+      toValue: -dim + 75,
+      duration: 1000,
+      useNativeDriver: true,
+    }).start();
+  }, [slideAnim]);
+
+  return (
+    <Animated.View
+      style={{
+        ...props.style,
+        transform: [{ translateY: slideAnim }],
+      }}
+    >
+      {props.children}
+    </Animated.View>
+  );
+};
+
+const ListingScreen = ({ navigation, props }) => {
+  const user = useSelector((state) => state.auth.user);
+
+  return (
+    <View style={styles.background}>
+      <SlideInView style={styles.header}>
+        <Text style={styles.headerText}>Listings</Text>
+      </SlideInView>
+      <View
+        style={{
+          height: 75,
+        }}
+      ></View>
+      <ScrollView
+        style={{
+          width: "100%",
+        }}
+      >
+        <Text style={{ fontSize: 50 }}>
+          {user != null ? user.username : null}
+        </Text>
+      </ScrollView>
+      <View
+        style={{
+          height: 55,
+        }}
+      ></View>
+      <NavigationTab data={navigation} screen="listings" />
+    </View>
+  );
 };
 
 const styles = StyleSheet.create({
@@ -34,64 +76,21 @@ const styles = StyleSheet.create({
     width: "100%",
     height: "100%",
     backgroundColor: colors.accent,
+    alignItems: "center",
+  },
+  header: {
+    backgroundColor: colors.theme,
+    width: "120%",
+    height: Dimensions.get("screen").height,
+    paddingBottom: 8,
+    alignItems: "center",
     justifyContent: "flex-end",
-    alignItems: "center",
-  },
-  logoContainer: {
+    elevation: 5,
     position: "absolute",
-    top: 180,
   },
-  logo: {
-    fontSize: 70,
-    color: colors.primary,
-    fontFamily: "KaushanScript_400Regular",
-  },
-  slogan: {
-    fontFamily: "Play_400Regular",
-    fontSize: 14.5,
+  headerText: {
     color: colors.accent,
-    position: "absolute",
-    bottom: 0,
-    paddingLeft: 5,
-  },
-  listingButton: {
-    width: "60%",
-    height: 50,
-    backgroundColor: colors.primary,
-    borderRadius: 10,
-    marginBottom: 20,
-    alignItems: "center",
-    justifyContent: "center",
-    shadowColor: colors.secondary,
-    shadowOffset: {
-      width: 0,
-      height: 4,
-    },
-    shadowOpacity: 0.5,
-    shadowRadius: 5,
-    elevation: 6,
-  },
-  loginButton: {
-    width: "60%",
-    height: 50,
-    backgroundColor: colors.secondary,
-    borderRadius: 10,
-    marginBottom: 20,
-    alignItems: "center",
-    justifyContent: "center",
-    shadowColor: colors.secondary,
-    shadowOffset: {
-      width: 0,
-      height: 4,
-    },
-    shadowOpacity: 0.5,
-    shadowRadius: 5,
-    elevation: 6,
-  },
-  buttonText: {
-    color: colors.accent,
-    fontSize: 22,
-    fontFamily: "Play_400Regular",
+    fontSize: 16,
   },
 });
 

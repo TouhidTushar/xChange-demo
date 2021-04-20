@@ -30,7 +30,56 @@ const authReducer = (state = initState, action) => {
         ...state,
         result: false,
         loading: false,
-        message: "Something went wrong!",
+        message: action.response,
+      };
+      break;
+
+    //login
+    case authConstants.LOGIN_REQUEST:
+      state = {
+        ...initState,
+        loading: true,
+      };
+      break;
+    case authConstants.LOGIN_SUCCESS:
+      state = {
+        ...state,
+        result: true,
+        loading: false,
+        user: action.currentUser,
+        message: "Login successful",
+      };
+      break;
+    case authConstants.LOGIN_FAILURE:
+      state = {
+        ...state,
+        result: false,
+        loading: false,
+        message: action.response,
+      };
+      break;
+
+    //logout
+    case authConstants.LOGOUT_REQUEST:
+      state = {
+        ...state,
+        loading: true,
+      };
+      break;
+    case authConstants.LOGOUT_SUCCESS:
+      state = {
+        ...initState,
+        result: true,
+        loading: false,
+        message: "Logout successful",
+      };
+      break;
+    case authConstants.LOGOUT_FAILURE:
+      state = {
+        ...state,
+        result: false,
+        loading: false,
+        message: action.response,
       };
       break;
   }

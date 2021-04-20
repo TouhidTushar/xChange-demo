@@ -84,7 +84,7 @@ const WelcomeScreen = ({ navigation, props }) => {
           <Text style={styles.slogan}>...a place for used goods</Text>
         </FadeInView>
 
-        <SlideInView style={styles.listingButtonWrapper} alt>
+        <SlideInView style={styles.listingButton} alt>
           <Text
             style={{ ...styles.buttonText, color: colors.contrast }}
             onPress={() => navigation.navigate("listings")}
@@ -93,7 +93,7 @@ const WelcomeScreen = ({ navigation, props }) => {
           </Text>
         </SlideInView>
 
-        <SlideInView style={styles.loginButtonWrapper}>
+        <SlideInView style={styles.loginButton}>
           <Text
             style={styles.buttonText}
             onPress={() => navigation.navigate("login")}
@@ -132,7 +132,7 @@ const styles = StyleSheet.create({
     bottom: 0,
     paddingLeft: 5,
   },
-  listingButtonWrapper: {
+  listingButton: {
     width: "60%",
     height: 50,
     backgroundColor: colors.secondary,
@@ -140,16 +140,9 @@ const styles = StyleSheet.create({
     marginBottom: 20,
     alignItems: "center",
     justifyContent: "center",
-    shadowColor: colors.contrast,
-    shadowOffset: {
-      width: 0,
-      height: 4,
-    },
-    shadowOpacity: 0.5,
-    shadowRadius: 5,
-    elevation: 6,
+    elevation: 5,
   },
-  loginButtonWrapper: {
+  loginButton: {
     width: "60%",
     height: 50,
     backgroundColor: colors.primary,
@@ -157,19 +150,11 @@ const styles = StyleSheet.create({
     marginBottom: 20,
     alignItems: "center",
     justifyContent: "center",
-    shadowColor: colors.contrast,
-    shadowOffset: {
-      width: 0,
-      height: 4,
-    },
-    shadowOpacity: 0.5,
-    shadowRadius: 5,
-    elevation: 6,
+    elevation: 5,
   },
   buttonText: {
     color: colors.accent,
     fontSize: 22,
-    fontFamily: "Play_400Regular",
     height: "100%",
     width: "100%",
     textAlignVertical: "center",
