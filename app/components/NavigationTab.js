@@ -147,7 +147,7 @@ const styles = StyleSheet.create({
     borderColor: "#cccccc",
     backgroundColor: colors.accent,
     borderTopWidth: 0.7,
-    elevation: 1,
+    elevation: 2,
   },
   tabs: {
     height: "100%",
@@ -165,7 +165,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: colors.contrast,
     opacity: 0.4,
-    elevation: 2,
+    elevation: 3,
   },
   mainButtonTextUP: {
     position: "absolute",
@@ -173,7 +173,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: colors.theme,
     opacity: 1,
-    elevation: 2,
+    elevation: 3,
   },
   mainButton: {
     position: "absolute",
@@ -184,7 +184,7 @@ const styles = StyleSheet.create({
     borderRadius: 30,
     justifyContent: "center",
     alignItems: "center",
-    elevation: 2,
+    elevation: 3,
   },
 });
 

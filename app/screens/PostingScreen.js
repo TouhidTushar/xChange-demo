@@ -1,5 +1,4 @@
 import React, { useRef, useEffect, useState } from "react";
-// import { useKeyboard } from "@react-native-community/hooks";
 import {
   Animated,
   Dimensions,
@@ -8,25 +7,111 @@ import {
   View,
   TextInput,
   Pressable,
+  Image,
 } from "react-native";
 import colors from "../colors";
 import { Ionicons } from "@expo/vector-icons";
 import NavigationTab from "../components/NavigationTab";
 import { ScrollView } from "react-native-gesture-handler";
+import * as ImagePicker from "expo-image-picker";
+import { newPost } from "../actions";
+import { useDispatch } from "react-redux";
+
+const SlideView = (props) => {
+  const slideAnim = useRef(new Animated.Value(50)).current;
+
+  useEffect(() => {
+    Animated.timing(slideAnim, {
+      toValue: Dimensions.get("window").width * 0.85,
+      duration: 500,
+      useNativeDriver: false,
+    }).start();
+  }, [slideAnim]);
+
+  return (
+    <Animated.View
+      style={{
+        ...props.style,
+        width: slideAnim,
+      }}
+    >
+      {props.children}
+    </Animated.View>
+  );
+};
+
+const DelayedView = (props) => {
+  const delayAnim = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    Animated.timing(delayAnim, {
+      toValue: 1,
+      delay: 500,
+      duration: 100,
+      useNativeDriver: false,
+    }).start();
+  }, [delayAnim]);
+
+  return (
+    <Animated.View
+      style={{
+        marginHorizontal: 8,
+        flexDirection: "row",
+        transform: [{ scale: delayAnim }],
+      }}
+    >
+      {props.children}
+    </Animated.View>
+  );
+};
 
 const PostingScreen = ({ navigation, props }) => {
-  // const keyboard = useKeyboard();
+  const dispatch = useDispatch();
   const [selectDrop, setSelectDrop] = useState(false);
   const [focused, setFocused] = useState(0);
   const [itemName, setItemName] = useState("");
-  const [category, setCategory] = useState("--please select a category--");
+  const [category, setCategory] = useState("--select a category--");
   const [price, setPrice] = useState(0);
   const [description, setDescription] = useState("");
+  const [images, setImages] = useState([]);
 
   const [itemNameError, setItemNameError] = useState("");
   const [categoryError, setCategoryError] = useState("");
   const [priceError, setPriceError] = useState("");
   const [descriptionError, setDescriptionError] = useState("");
+  const [imageError, setImageError] = useState("");
+  const [camClicked, setCamClicked] = useState(false);
+  const [imageCount, setImageCount] = useState(0);
+
+  const postData = { itemName, category, price, description, images };
+
+  const handlePost = () => {
+    if (
+      itemName.length >= 3 &&
+      category != "--select a category--" &&
+      price != 0 &&
+      description != "" &&
+      images.length > 0
+    ) {
+      dispatch(newPost(postData));
+    } else {
+      if (itemName.length < 3) {
+        setItemNameError("use at least 3 characters");
+      }
+      if (category == "--select a category--") {
+        setCategoryError("must select a category");
+      }
+      if (price == 0) {
+        setPriceError("must set a price");
+      }
+      if (description == "") {
+        setDescriptionError("write a few words about the item");
+      }
+      if (images.length == 0) {
+        setImageError("must select at least one image");
+      }
+    }
+  };
 
   const handleSelect = () => {
     if (selectDrop) {
@@ -39,9 +124,59 @@ const PostingScreen = ({ navigation, props }) => {
   };
 
   const handleSelection = (data) => {
+    setCategoryError("");
     setCategory(data);
     setSelectDrop(false);
     setFocused(0);
+  };
+
+  const handleImage = async () => {
+    if (imageCount < 5) {
+      let imageArray = images;
+      let result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        allowsEditing: true,
+        aspect: [4, 3],
+        quality: 1,
+      });
+
+      if (!result.cancelled) {
+        let imageObj = {
+          image: result.uri,
+          filename: result.uri.substr(result.uri.lastIndexOf("/") + 1),
+        };
+        imageArray.push(imageObj);
+        setImages(imageArray);
+        setImageCount(imageCount + 1);
+        setImageError("");
+      }
+    } else {
+      alert("Sorry, maximum 5 images are allowed!");
+    }
+  };
+
+  const handlePermission = () => {
+    (async () => {
+      if (Platform.OS !== "web") {
+        const {
+          status,
+        } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+        if (status !== "granted") {
+          alert("Sorry, permission is required to upload images!");
+        } else {
+          handleImage();
+        }
+      }
+    })();
+    setCamClicked(false);
+  };
+
+  const handleCamClick = () => {
+    if (camClicked) {
+      setCamClicked(false);
+    } else {
+      setCamClicked(true);
+    }
   };
 
   return (
@@ -50,7 +185,19 @@ const PostingScreen = ({ navigation, props }) => {
         <Text style={styles.headerText}>Create post</Text>
       </View>
 
-      <ScrollView contentContainerStyle={styles.scrollArea}>
+      <ScrollView
+        contentContainerStyle={{
+          ...styles.scrollArea,
+          height:
+            itemNameError == "" &&
+            categoryError == "" &&
+            priceError == "" &&
+            descriptionError == "" &&
+            imageError == ""
+              ? Dimensions.get("window").height - 55
+              : Dimensions.get("window").height,
+        }}
+      >
         <Text style={styles.title}>Post an item for listing</Text>
 
         <View
@@ -83,6 +230,10 @@ const PostingScreen = ({ navigation, props }) => {
           />
         </View>
 
+        {itemNameError === "" ? null : (
+          <Text style={styles.inputMsg}>{itemNameError}</Text>
+        )}
+
         <Pressable
           onPress={handleSelect}
           style={
@@ -103,12 +254,19 @@ const PostingScreen = ({ navigation, props }) => {
           <View style={focused == 2 ? styles.areaBoxFocused : styles.areaBox}>
             <Text
               style={{
-                fontSize: 18,
+                fontSize: categoryError === "" ? 18 : 14,
                 paddingTop: 2,
-                opacity: category == "--please select a category--" ? 0.5 : 1,
+                color: colors.contrast,
+
+                opacity:
+                  categoryError === ""
+                    ? category == "--select a category--"
+                      ? 0.4
+                      : 1
+                    : 1,
               }}
             >
-              {category}
+              {categoryError === "" ? category : categoryError}
             </Text>
           </View>
         </Pressable>
@@ -132,9 +290,9 @@ const PostingScreen = ({ navigation, props }) => {
             onBlur={() => setFocused(0)}
             style={focused == 3 ? styles.areaBoxFocused : styles.areaBox}
             onChangeText={(e) => {
-              setItemName(e);
+              setDescription(e);
               if (e != "") {
-                setItemNameError("");
+                setDescriptionError("");
               }
             }}
           />
@@ -174,6 +332,10 @@ const PostingScreen = ({ navigation, props }) => {
           ) : null}
         </View>
 
+        {descriptionError === "" ? null : (
+          <Text style={styles.inputMsg}>{descriptionError}</Text>
+        )}
+
         <View
           style={
             focused == 4 ? styles.inputContainerFocused : styles.inputContainer
@@ -205,14 +367,107 @@ const PostingScreen = ({ navigation, props }) => {
           <Text style={styles.priceUnit}>BDT</Text>
         </View>
 
-        <View style={styles.imageUpload}>
-          <View style={styles.iconBtn}>
-            <Ionicons name="camera-outline" size={28} color={colors.accent} />
+        {priceError === "" ? null : (
+          <Text style={styles.inputMsg}>{priceError}</Text>
+        )}
+
+        {camClicked ? null : (
+          <Pressable style={styles.imageUpload} onPress={handleCamClick}>
+            <View style={styles.iconBtn}>
+              <Ionicons name="camera-outline" size={28} color={colors.accent} />
+            </View>
+            <Text style={{ fontSize: 18, color: colors.theme, marginLeft: 10 }}>
+              Add images
+            </Text>
+          </Pressable>
+        )}
+
+        {camClicked ? (
+          <View style={styles.imageUpload}>
+            <SlideView style={styles.iconBtnDrop}>
+              <DelayedView>
+                <Pressable
+                  onPress={handlePermission}
+                  style={{ flexDirection: "row" }}
+                >
+                  <Ionicons
+                    name="folder-open"
+                    size={20}
+                    color={colors.primary}
+                  />
+                  <Text
+                    style={{
+                      fontSize: 18,
+                      color: colors.theme,
+                      marginLeft: 3,
+                    }}
+                  >
+                    choose from files
+                  </Text>
+                </Pressable>
+              </DelayedView>
+
+              <DelayedView>
+                <Pressable
+                  // onPress={handlePermission}
+                  style={{ flexDirection: "row" }}
+                >
+                  <Ionicons name="camera" size={20} color={colors.primary} />
+                  <Text
+                    style={{
+                      fontSize: 18,
+                      color: colors.theme,
+                      marginLeft: 3,
+                    }}
+                  >
+                    take photo
+                  </Text>
+                </Pressable>
+              </DelayedView>
+
+              <Pressable style={styles.iconBtn} onPress={handleCamClick}>
+                <Ionicons
+                  name="chevron-back-outline"
+                  size={28}
+                  color={colors.accent}
+                />
+              </Pressable>
+            </SlideView>
           </View>
-          <Text style={{ fontSize: 18, color: colors.theme, marginLeft: 10 }}>
-            Add images
-          </Text>
-        </View>
+        ) : null}
+
+        {imageError === "" ? null : (
+          <Text style={styles.inputMsg}>{imageError}</Text>
+        )}
+
+        {images.length > 0 ? (
+          <View
+            style={{
+              width: "85%",
+              flexDirection: "row",
+              flexWrap: "wrap",
+              marginTop: 15,
+            }}
+          >
+            {images.map((item, index) => (
+              <Image
+                key={index}
+                source={{ uri: item.image }}
+                style={styles.imgBox}
+              />
+            ))}
+            {images.length < 5 ? (
+              <Pressable style={styles.extraImg} onPress={handlePermission}>
+                <Ionicons name="add-outline" size={40} color={colors.primary} />
+                <Text>add more</Text>
+              </Pressable>
+            ) : null}
+          </View>
+        ) : null}
+
+        <Pressable onPress={handlePost} style={styles.postBtn}>
+          <Text style={styles.btnText}>post</Text>
+        </Pressable>
       </ScrollView>
 
       <NavigationTab data={navigation} screen="posting" />
@@ -229,7 +484,6 @@ const styles = StyleSheet.create({
   },
   scrollArea: {
     width: Dimensions.get("screen").width,
-    height: Dimensions.get("screen").height - 130,
     alignItems: "center",
   },
   header: {
@@ -246,8 +500,8 @@ const styles = StyleSheet.create({
     fontSize: 16,
   },
   title: {
-    fontSize: 16,
-    marginTop: 10,
+    fontSize: 18,
+    marginTop: 5,
     color: colors.theme,
   },
   inputContainer: {
@@ -373,11 +627,49 @@ const styles = StyleSheet.create({
     backgroundColor: colors.theme,
     justifyContent: "center",
     alignItems: "center",
+    elevation: 1,
+  },
+  iconBtnDrop: {
+    height: 50,
+    borderRadius: 50,
+    flexDirection: "row",
+    justifyContent: "flex-end",
+    alignItems: "center",
+    backgroundColor: colors.secondary,
   },
   inputMsg: {
     width: "85%",
     paddingLeft: 5,
-    color: "tomato",
+    color: colors.primary,
+  },
+  postBtn: {
+    backgroundColor: colors.primary,
+    width: "85%",
+    height: 40,
+    marginTop: 15,
+    borderRadius: 5,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  btnText: {
+    fontSize: 18,
+    color: colors.accent,
+  },
+  imgBox: {
+    width: 100,
+    height: 75,
+    margin: 5,
+    borderRadius: 5,
+  },
+  extraImg: {
+    width: 100,
+    height: 75,
+    margin: 5,
+    borderColor: colors.theme,
+    backgroundColor: colors.secondary,
+    justifyContent: "center",
+    alignItems: "center",
+    borderRadius: 5,
   },
 });
 
