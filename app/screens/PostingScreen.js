@@ -8,15 +8,17 @@ import {
   TextInput,
   Pressable,
   Image,
+  BackHandler,
 } from "react-native";
 import colors from "../colors";
+import { newPost } from "../actions";
 import { Ionicons } from "@expo/vector-icons";
+import * as ImagePicker from "expo-image-picker";
+import { useDispatch, useSelector } from "react-redux";
 import NavigationTab from "../components/NavigationTab";
 import { ScrollView } from "react-native-gesture-handler";
-import * as ImagePicker from "expo-image-picker";
-import { newPost } from "../actions";
-import { useDispatch } from "react-redux";
 
+//animation 1
 const SlideView = (props) => {
   const slideAnim = useRef(new Animated.Value(50)).current;
 
@@ -40,6 +42,7 @@ const SlideView = (props) => {
   );
 };
 
+//animation 2
 const DelayedView = (props) => {
   const delayAnim = useRef(new Animated.Value(0)).current;
 
@@ -67,23 +70,57 @@ const DelayedView = (props) => {
 
 const PostingScreen = ({ navigation, props }) => {
   const dispatch = useDispatch();
-  const [selectDrop, setSelectDrop] = useState(false);
+  const categories = useSelector((state) => state.general.categories);
+  const locations = useSelector((state) => state.general.locations);
   const [focused, setFocused] = useState(0);
   const [itemName, setItemName] = useState("");
   const [category, setCategory] = useState("--select a category--");
   const [price, setPrice] = useState(0);
   const [description, setDescription] = useState("");
+  const [location, setLocation] = useState("--set item location--");
   const [images, setImages] = useState([]);
-
   const [itemNameError, setItemNameError] = useState("");
   const [categoryError, setCategoryError] = useState("");
   const [priceError, setPriceError] = useState("");
   const [descriptionError, setDescriptionError] = useState("");
+  const [locationError, setLocationError] = useState("");
   const [imageError, setImageError] = useState("");
-  const [camClicked, setCamClicked] = useState(false);
   const [imageCount, setImageCount] = useState(0);
+  const [catDrop, setCatDrop] = useState(false);
+  const [locDrop, setLocDrop] = useState(false);
+  const [camClicked, setCamClicked] = useState(false);
+  const [discardWarning, setDiscardWarning] = useState(false);
 
-  const postData = { itemName, category, price, description, images };
+  const postData = { itemName, category, price, description, location, images };
+
+  //back button handler
+  useEffect(() => {
+    if (
+      itemName === "" &&
+      category === "--select a category--" &&
+      price === 0 &&
+      description === "" &&
+      location === "--set item location--" &&
+      images.length == 0
+    ) {
+      BackHandler.removeEventListener(
+        "hardwareBackPress",
+        handleBackButtonClick
+      );
+    } else {
+      BackHandler.addEventListener("hardwareBackPress", handleBackButtonClick);
+    }
+    return () =>
+      BackHandler.removeEventListener(
+        "hardwareBackPress",
+        handleBackButtonClick
+      );
+  }, [itemName, category, price, description, location, imageCount]);
+
+  const handleBackButtonClick = () => {
+    setDiscardWarning(true);
+    return true;
+  };
 
   const handlePost = () => {
     if (
@@ -91,6 +128,7 @@ const PostingScreen = ({ navigation, props }) => {
       category != "--select a category--" &&
       price != 0 &&
       description != "" &&
+      location != "--set item location--" &&
       images.length > 0
     ) {
       dispatch(newPost(postData));
@@ -107,26 +145,46 @@ const PostingScreen = ({ navigation, props }) => {
       if (description == "") {
         setDescriptionError("write a few words about the item");
       }
+      if (location == "--set item location--") {
+        setLocationError("must set the location");
+      }
       if (images.length == 0) {
         setImageError("must select at least one image");
       }
     }
   };
 
-  const handleSelect = () => {
-    if (selectDrop) {
-      setSelectDrop(false);
+  const handleCat = () => {
+    if (catDrop) {
+      setCatDrop(false);
       setFocused(0);
     } else {
-      setSelectDrop(true);
+      setCatDrop(true);
       setFocused(2);
     }
   };
 
-  const handleSelection = (data) => {
+  const handleCatSelection = (data) => {
     setCategoryError("");
     setCategory(data);
-    setSelectDrop(false);
+    setCatDrop(false);
+    setFocused(0);
+  };
+
+  const handleLoc = () => {
+    if (locDrop) {
+      setLocDrop(false);
+      setFocused(0);
+    } else {
+      setLocDrop(true);
+      setFocused(4);
+    }
+  };
+
+  const handleLocSelection = (data) => {
+    setLocationError("");
+    setLocation(data);
+    setLocDrop(false);
     setFocused(0);
   };
 
@@ -155,7 +213,32 @@ const PostingScreen = ({ navigation, props }) => {
     }
   };
 
-  const handlePermission = () => {
+  const handleCamera = async () => {
+    if (imageCount < 5) {
+      let imageArray = images;
+      let result = await ImagePicker.launchCameraAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        allowsEditing: true,
+        aspect: [4, 3],
+        quality: 1,
+      });
+
+      if (!result.cancelled) {
+        let imageObj = {
+          image: result.uri,
+          filename: result.uri.substr(result.uri.lastIndexOf("/") + 1),
+        };
+        imageArray.push(imageObj);
+        setImages(imageArray);
+        setImageCount(imageCount + 1);
+        setImageError("");
+      }
+    } else {
+      alert("Sorry, maximum 5 images are allowed!");
+    }
+  };
+
+  const handleLibPermission = () => {
     (async () => {
       if (Platform.OS !== "web") {
         const {
@@ -171,6 +254,20 @@ const PostingScreen = ({ navigation, props }) => {
     setCamClicked(false);
   };
 
+  const handleCamPermission = () => {
+    (async () => {
+      if (Platform.OS !== "web") {
+        const { status } = await ImagePicker.requestCameraPermissionsAsync();
+        if (status !== "granted") {
+          alert("Sorry, permission is required to take photos!");
+        } else {
+          handleCamera();
+        }
+      }
+    })();
+    setCamClicked(false);
+  };
+
   const handleCamClick = () => {
     if (camClicked) {
       setCamClicked(false);
@@ -179,27 +276,26 @@ const PostingScreen = ({ navigation, props }) => {
     }
   };
 
+  const clearState = () => {
+    setItemName("");
+    setCategory("--select a category--");
+    setDescription("");
+    setPrice(0);
+    setLocation("");
+    setImages([0]);
+  };
+
   return (
     <View style={styles.wrapper}>
       <View style={styles.header}>
         <Text style={styles.headerText}>Create post</Text>
       </View>
 
-      <ScrollView
-        contentContainerStyle={{
-          ...styles.scrollArea,
-          height:
-            itemNameError == "" &&
-            categoryError == "" &&
-            priceError == "" &&
-            descriptionError == "" &&
-            imageError == ""
-              ? Dimensions.get("window").height - 55
-              : Dimensions.get("window").height,
-        }}
-      >
+      {/* scrollable input area */}
+      <ScrollView contentContainerStyle={styles.scrollArea}>
         <Text style={styles.title}>Post an item for listing</Text>
 
+        {/* itemname input */}
         <View
           style={
             focused == 1 ? styles.inputContainerFocused : styles.inputContainer
@@ -217,7 +313,8 @@ const PostingScreen = ({ navigation, props }) => {
             maxLength={20}
             onFocus={() => {
               setFocused(1);
-              setSelectDrop(false);
+              setCatDrop(false);
+              setLocDrop(false);
             }}
             onBlur={() => setFocused(0)}
             style={focused == 1 ? styles.inputBoxFocused : styles.inputBox}
@@ -234,8 +331,9 @@ const PostingScreen = ({ navigation, props }) => {
           <Text style={styles.inputMsg}>{itemNameError}</Text>
         )}
 
+        {/* category select */}
         <Pressable
-          onPress={handleSelect}
+          onPress={handleCat}
           style={
             focused == 2
               ? { ...styles.inputContainerFocused, paddingVertical: 5 }
@@ -244,9 +342,7 @@ const PostingScreen = ({ navigation, props }) => {
         >
           <Ionicons
             name={
-              selectDrop == false
-                ? "chevron-down-outline"
-                : "chevron-up-outline"
+              catDrop == false ? "chevron-down-outline" : "chevron-up-outline"
             }
             size={24}
             color={focused == 2 ? colors.primary : colors.theme}
@@ -271,6 +367,23 @@ const PostingScreen = ({ navigation, props }) => {
           </View>
         </Pressable>
 
+        {catDrop ? (
+          <ScrollView style={styles.selectWrapper}>
+            {categories.map((item, index) => {
+              return (
+                <Pressable
+                  key={item.name + index}
+                  style={styles.selectBtns}
+                  onPress={() => handleCatSelection(item.name)}
+                >
+                  <Text style={styles.selectText}>{item.name}</Text>
+                </Pressable>
+              );
+            })}
+          </ScrollView>
+        ) : null}
+
+        {/* description box */}
         <View style={focused == 3 ? styles.inputAreaFocused : styles.inputArea}>
           <Ionicons
             name="clipboard-outline"
@@ -285,7 +398,8 @@ const PostingScreen = ({ navigation, props }) => {
             numberOfLines={4}
             onFocus={() => {
               setFocused(3);
-              setSelectDrop(false);
+              setCatDrop(false);
+              setLocDrop(false);
             }}
             onBlur={() => setFocused(0)}
             style={focused == 3 ? styles.areaBoxFocused : styles.areaBox}
@@ -296,55 +410,72 @@ const PostingScreen = ({ navigation, props }) => {
               }
             }}
           />
-          {selectDrop ? (
-            <ScrollView style={styles.selectWrapper}>
-              <Pressable
-                style={styles.selectBtns}
-                onPress={() => handleSelection("Apparel")}
-              >
-                <Text style={styles.selectText}>Apparel</Text>
-              </Pressable>
-              <Pressable
-                style={styles.selectBtns}
-                onPress={() => handleSelection("Books")}
-              >
-                <Text style={styles.selectText}>Books</Text>
-              </Pressable>
-              <Pressable
-                style={styles.selectBtns}
-                onPress={() => handleSelection("Electronics")}
-              >
-                <Text style={styles.selectText}>Electronics</Text>
-              </Pressable>
-              <Pressable
-                style={styles.selectBtns}
-                onPress={() => handleSelection("Furnitures")}
-              >
-                <Text style={styles.selectText}>Furnitures</Text>
-              </Pressable>
-              <Pressable
-                style={styles.selectBtns}
-                onPress={() => handleSelection("Others")}
-              >
-                <Text style={styles.selectText}>Others</Text>
-              </Pressable>
-            </ScrollView>
-          ) : null}
         </View>
 
         {descriptionError === "" ? null : (
           <Text style={styles.inputMsg}>{descriptionError}</Text>
         )}
 
+        {/* location select */}
+        <Pressable
+          onPress={handleLoc}
+          style={
+            focused == 4
+              ? { ...styles.inputContainerFocused, paddingVertical: 5 }
+              : { ...styles.inputContainer, paddingVertical: 5 }
+          }
+        >
+          <Ionicons
+            name="location-outline"
+            size={24}
+            color={focused == 4 ? colors.primary : colors.theme}
+          />
+          <View style={focused == 4 ? styles.areaBoxFocused : styles.areaBox}>
+            <Text
+              style={{
+                fontSize: locationError === "" ? 18 : 14,
+                paddingTop: 2,
+                color: colors.contrast,
+
+                opacity:
+                  locationError === ""
+                    ? location == "--set item location--"
+                      ? 0.4
+                      : 1
+                    : 1,
+              }}
+            >
+              {locationError === "" ? location : locationError}
+            </Text>
+          </View>
+        </Pressable>
+
+        {locDrop ? (
+          <ScrollView style={styles.selectWrapper}>
+            {locations.map((item, index) => {
+              return (
+                <Pressable
+                  key={item.name + index}
+                  style={styles.selectBtns}
+                  onPress={() => handleLocSelection(item.name)}
+                >
+                  <Text style={styles.selectText}>{item.name}</Text>
+                </Pressable>
+              );
+            })}
+          </ScrollView>
+        ) : null}
+
+        {/* price input */}
         <View
           style={
-            focused == 4 ? styles.inputContainerFocused : styles.inputContainer
+            focused == 5 ? styles.inputContainerFocused : styles.inputContainer
           }
         >
           <Ionicons
             name="pricetag-outline"
             size={24}
-            color={focused == 4 ? colors.primary : colors.theme}
+            color={focused == 5 ? colors.primary : colors.theme}
           />
           <TextInput
             placeholder="asking price"
@@ -352,11 +483,12 @@ const PostingScreen = ({ navigation, props }) => {
             autoCorrect={false}
             keyboardType="numeric"
             onFocus={() => {
-              setFocused(4);
-              setSelectDrop(false);
+              setFocused(5);
+              setCatDrop(false);
+              setLocDrop(false);
             }}
             onBlur={() => setFocused(0)}
-            style={focused == 4 ? styles.inputBoxFocused : styles.inputBox}
+            style={focused == 5 ? styles.inputBoxFocused : styles.inputBox}
             onChangeText={(e) => {
               setPrice(e);
               if (e != "") {
@@ -371,6 +503,7 @@ const PostingScreen = ({ navigation, props }) => {
           <Text style={styles.inputMsg}>{priceError}</Text>
         )}
 
+        {/* image input */}
         {camClicked ? null : (
           <Pressable style={styles.imageUpload} onPress={handleCamClick}>
             <View style={styles.iconBtn}>
@@ -387,7 +520,7 @@ const PostingScreen = ({ navigation, props }) => {
             <SlideView style={styles.iconBtnDrop}>
               <DelayedView>
                 <Pressable
-                  onPress={handlePermission}
+                  onPress={handleLibPermission}
                   style={{ flexDirection: "row" }}
                 >
                   <Ionicons
@@ -409,7 +542,7 @@ const PostingScreen = ({ navigation, props }) => {
 
               <DelayedView>
                 <Pressable
-                  // onPress={handlePermission}
+                  onPress={handleCamPermission}
                   style={{ flexDirection: "row" }}
                 >
                   <Ionicons name="camera" size={20} color={colors.primary} />
@@ -440,6 +573,7 @@ const PostingScreen = ({ navigation, props }) => {
           <Text style={styles.inputMsg}>{imageError}</Text>
         )}
 
+        {/* selected images */}
         {images.length > 0 ? (
           <View
             style={{
@@ -457,7 +591,7 @@ const PostingScreen = ({ navigation, props }) => {
               />
             ))}
             {images.length < 5 ? (
-              <Pressable style={styles.extraImg} onPress={handlePermission}>
+              <Pressable style={styles.extraImg} onPress={handleLibPermission}>
                 <Ionicons name="add-outline" size={40} color={colors.primary} />
                 <Text>add more</Text>
               </Pressable>
@@ -465,12 +599,76 @@ const PostingScreen = ({ navigation, props }) => {
           </View>
         ) : null}
 
+        {/* post button */}
         <Pressable onPress={handlePost} style={styles.postBtn}>
           <Text style={styles.btnText}>post</Text>
         </Pressable>
+        <View style={{ height: 45 }}></View>
       </ScrollView>
+      <View style={{ height: 55 }}></View>
 
-      <NavigationTab data={navigation} screen="posting" />
+      {/* bottom navbar */}
+      <NavigationTab
+        data={navigation}
+        action={() => setDiscardWarning(true)}
+        screen={
+          itemName == "" &&
+          category == "--select a category--" &&
+          price == 0 &&
+          description == "" &&
+          location == "--set item location--" &&
+          images.length == 0
+            ? "posting"
+            : "postingAlt"
+        }
+      />
+
+      {/* discard modal */}
+      {discardWarning ? (
+        <>
+          <Pressable
+            style={styles.discardWrapper}
+            onPress={() => setDiscardWarning(false)}
+          ></Pressable>
+          <View style={styles.discardModal}>
+            <Text
+              style={{ fontSize: 20, marginBottom: 35, color: colors.accent }}
+            >
+              Do you want to discard your changes?
+            </Text>
+            <Pressable
+              style={{ marginBottom: 15 }}
+              onPress={() => {
+                setDiscardWarning(false);
+                clearState();
+                navigation.goBack();
+              }}
+            >
+              <View style={{ flexDirection: "row", alignItems: "center" }}>
+                <Ionicons name="trash-outline" size={20} color="tomato" />
+                <Text style={{ fontSize: 18, color: "tomato" }}>discard</Text>
+              </View>
+            </Pressable>
+            <Pressable
+              style={{ marginBottom: 15 }}
+              onPress={() => {
+                setDiscardWarning(false);
+              }}
+            >
+              <View style={{ flexDirection: "row", alignItems: "center" }}>
+                <Ionicons
+                  name="checkmark-outline"
+                  size={20}
+                  color={colors.theme}
+                />
+                <Text style={{ fontSize: 18, color: colors.theme }}>
+                  continue editing
+                </Text>
+              </View>
+            </Pressable>
+          </View>
+        </>
+      ) : null}
     </View>
   );
 };
@@ -587,14 +785,12 @@ const styles = StyleSheet.create({
     textAlignVertical: "top",
   },
   selectWrapper: {
-    position: "absolute",
-    top: -22,
-    left: "12%",
-    width: "88%",
+    width: "72%",
     backgroundColor: colors.accent,
     borderBottomLeftRadius: 5,
     borderBottomRightRadius: 5,
     elevation: 5,
+    marginLeft: "9%",
     paddingHorizontal: 10,
     paddingBottom: 10,
     height: 130,
@@ -670,6 +866,24 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     borderRadius: 5,
+  },
+  discardWrapper: {
+    width: "100%",
+    height: "100%",
+    position: "absolute",
+    bottom: 0,
+    backgroundColor: colors.contrast,
+    opacity: 0.7,
+    elevation: 10,
+  },
+  discardModal: {
+    width: "100%",
+    position: "absolute",
+    bottom: 0,
+    backgroundColor: colors.contrast,
+    justifyContent: "space-around",
+    padding: 15,
+    elevation: 11,
   },
 });
 

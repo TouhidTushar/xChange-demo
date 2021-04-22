@@ -7,6 +7,7 @@ import { StyleSheet, Text, View, Pressable, Alert } from "react-native";
 const NavigationTab = (props) => {
   const navigation = props.data;
   const currScreen = props.screen;
+  const discardModal = props.action;
   const [loggedIn, setLoggedIn] = useState(false);
 
   useEffect(() => {
@@ -28,7 +29,11 @@ const NavigationTab = (props) => {
       <View style={styles.navContainer}>
         <Pressable
           style={styles.tabs}
-          onPress={() => navigation.navigate("listings")}
+          onPress={
+            currScreen === "postingAlt"
+              ? discardModal
+              : () => navigation.navigate("listings")
+          }
         >
           <Ionicons
             name="home-outline"
@@ -47,7 +52,7 @@ const NavigationTab = (props) => {
 
         <Pressable
           style={styles.tabs}
-          // onPress={() => {}}
+          // onPress={currScreen==="postingAlt"? discardModal : () => {}}
         >
           <Ionicons
             name="search-outline"
@@ -68,11 +73,15 @@ const NavigationTab = (props) => {
 
         <Pressable
           style={styles.tabs}
-          onPress={() => {
-            loggedIn == true
-              ? navigation.navigate("account")
-              : navigation.navigate("login");
-          }}
+          onPress={
+            currScreen === "postingAlt"
+              ? discardModal
+              : () => {
+                  loggedIn == true
+                    ? navigation.navigate("account")
+                    : navigation.navigate("login");
+                }
+          }
         >
           <Ionicons
             name="md-person-outline"
@@ -91,7 +100,7 @@ const NavigationTab = (props) => {
 
         <Pressable
           style={styles.tabs}
-          // onPress={() => {}}
+          // onPress={currScreen==="postingAlt"? discardModal:() => {}}
         >
           <Ionicons
             name="settings-outline"
@@ -111,7 +120,7 @@ const NavigationTab = (props) => {
 
       <Text
         style={
-          currScreen == "posting"
+          currScreen == "posting" || currScreen == "postingAlt"
             ? styles.mainButtonTextUP
             : styles.mainButtonText
         }

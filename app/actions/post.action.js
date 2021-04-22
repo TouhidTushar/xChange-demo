@@ -48,6 +48,7 @@ export const newPost = (data) => {
           category: data.category,
           price: data.price,
           description: data.description,
+          location: data.location,
           images: imageArray,
           postedBy: firebase.auth().currentUser.uid,
           createdAt: Date.now(),

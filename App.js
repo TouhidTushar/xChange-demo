@@ -15,6 +15,7 @@ import ProfileScreen from "./app/screens/ProfileScreen";
 import RegistrationScreen from "./app/screens/RegistrationScreen";
 import LoginScreen from "./app/screens/LoginScreen";
 import { loggedInState } from "./app/actions/auth.action";
+import { getCategories, getLocations } from "./app/actions";
 
 //firebase configuration
 const firebaseConfig = {
@@ -81,6 +82,8 @@ const App = () => {
           // User is signed in.
           setLoggedIn(true);
           dispatch(loggedInState());
+          dispatch(getCategories());
+          dispatch(getLocations());
         } else {
           // No user is signed in.
           setLoggedIn(false);

@@ -31,10 +31,9 @@ export const register = (data) => {
                     currentUser: snapshot.data(),
                   });
                 } else {
-                  console.log(error);
                   dispatch({
                     type: authConstants.SIGNUP_FAILURE,
-                    response: error.message,
+                    response: "something went wrong!",
                   });
                 }
               })
