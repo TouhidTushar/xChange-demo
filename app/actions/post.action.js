@@ -1,6 +1,86 @@
 import firebase from "firebase";
-import { authConstants } from "./constants";
+import { postConstants } from "./constants";
 
+// getting all posts
+export const getPosts = () => {
+  return async (dispatch) => {
+    var postArray = [];
+    dispatch({ type: postConstants.GETPOST_REQUEST });
+    firebase
+      .firestore()
+      .collection("listings")
+      .get()
+      .then((snapshot) => {
+        if (snapshot) {
+          var count = snapshot.size;
+          snapshot.forEach((doc) => {
+            firebase
+              .firestore()
+              .collection("users")
+              .doc(doc.data().postedBy)
+              .get()
+              .then((snapshot) => {
+                var user = false;
+                if (snapshot.exists) {
+                  const _postUser = {
+                    userId: doc.data().postedBy,
+                    username: snapshot.data().username,
+                    contact: snapshot.data().contact,
+                  };
+                  user = true;
+                  if (user == true) {
+                    var postObj = {
+                      itemName: doc.data().itemName,
+                      category: doc.data().category,
+                      location: doc.data().location,
+                      description: doc.data().description,
+                      images: doc.data().images,
+                      price: doc.data().price,
+                      createdAt: doc.data().createdAt,
+                      postedBy: _postUser,
+                    };
+                    postArray.push(postObj);
+                    count = count - 1;
+                    if (count == 0) {
+                      dispatch({
+                        type: postConstants.GETPOST_SUCCESS,
+                        posts: postArray,
+                      });
+                    }
+                  }
+                } else {
+                  dispatch({
+                    type: postConstants.GETPOST_FAILURE,
+                    response: "something went wrong!",
+                  });
+                }
+              })
+              .catch((error) => {
+                console.log(error);
+                dispatch({
+                  type: postConstants.GETPOST_FAILURE,
+                  response: error.message,
+                });
+              });
+          });
+        } else {
+          dispatch({
+            type: postConstants.GETPOST_FAILURE,
+            response: "something went wrong!",
+          });
+        }
+      })
+      .catch((error) => {
+        console.log(error);
+        dispatch({
+          type: postConstants.GETPOST_FAILURE,
+          response: error.message,
+        });
+      });
+  };
+};
+
+//creating new post
 export const newPost = (data) => {
   return async (dispatch) => {
     var imageArray = [];
@@ -53,8 +133,9 @@ export const newPost = (data) => {
           postedBy: firebase.auth().currentUser.uid,
           createdAt: Date.now(),
         })
-        .then((result) => {
-          console.log(result);
+        .then(() => {
+          getPosts();
+          data.navigation.navigate("listings");
         })
         .catch((error) => {
           console.log(error);

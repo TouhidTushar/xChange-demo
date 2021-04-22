@@ -15,7 +15,7 @@ import ProfileScreen from "./app/screens/ProfileScreen";
 import RegistrationScreen from "./app/screens/RegistrationScreen";
 import LoginScreen from "./app/screens/LoginScreen";
 import { loggedInState } from "./app/actions/auth.action";
-import { getCategories, getLocations } from "./app/actions";
+import { getCategories, getLocations, getPosts } from "./app/actions";
 
 //firebase configuration
 const firebaseConfig = {
@@ -89,6 +89,7 @@ const App = () => {
           setLoggedIn(false);
         }
       });
+      dispatch(getPosts());
     }
     return () => (mounted = false);
   }, [firebase.auth().currentUser]);

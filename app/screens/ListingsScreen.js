@@ -14,6 +14,7 @@ import { ScrollView } from "react-native-gesture-handler";
 import { useSelector } from "react-redux";
 import colors from "../colors";
 import NavigationTab from "../components/NavigationTab";
+import PostCard from "../components/PostCard";
 
 const SlideInView = (props) => {
   const dim = Dimensions.get("screen").height;
@@ -40,7 +41,7 @@ const SlideInView = (props) => {
 };
 
 const ListingScreen = ({ navigation, props }) => {
-  const user = useSelector((state) => state.auth.user);
+  const posts = useSelector((state) => state.post.posts);
 
   return (
     <View style={styles.background}>
@@ -53,13 +54,20 @@ const ListingScreen = ({ navigation, props }) => {
         }}
       ></View>
       <ScrollView
-        style={{
-          width: "100%",
+        contentContainerStyle={{
+          width: Dimensions.get("window").width,
+          alignItems: "center",
         }}
       >
-        <Text style={{ fontSize: 50 }}>
-          {user != null ? user.username : null}
-        </Text>
+        <View style={{ height: 10 }}></View>
+
+        {posts.map((item, index) => {
+          return (
+            <PostCard key={item.itemName + index} post={item} serial={index} />
+          );
+        })}
+
+        <View style={{ height: 45 }}></View>
       </ScrollView>
       <View
         style={{

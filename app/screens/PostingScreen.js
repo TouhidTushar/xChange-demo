@@ -91,7 +91,15 @@ const PostingScreen = ({ navigation, props }) => {
   const [camClicked, setCamClicked] = useState(false);
   const [discardWarning, setDiscardWarning] = useState(false);
 
-  const postData = { itemName, category, price, description, location, images };
+  const postData = {
+    itemName,
+    category,
+    price,
+    description,
+    location,
+    images,
+    navigation,
+  };
 
   //back button handler
   useEffect(() => {

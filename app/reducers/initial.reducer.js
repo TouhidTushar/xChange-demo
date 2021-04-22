@@ -59,6 +59,31 @@ const initialReducer = (state = initState, action) => {
         message: action.response,
       };
       break;
+
+    //get all posts
+    case initConstants.GETPOST_REQUEST:
+      state = {
+        ...initState,
+        loading: true,
+      };
+      break;
+    case initConstants.GETPOST_SUCCESS:
+      state = {
+        ...state,
+        result: true,
+        loading: false,
+        locations: action.locations,
+        message: "locations retrieved",
+      };
+      break;
+    case initConstants.GETPOST_FAILURE:
+      state = {
+        ...state,
+        result: false,
+        loading: false,
+        message: action.response,
+      };
+      break;
   }
   return state;
 };
