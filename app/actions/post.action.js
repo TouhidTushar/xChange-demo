@@ -4,11 +4,12 @@ import { postConstants } from "./constants";
 // getting all posts
 export const getPosts = () => {
   return async (dispatch) => {
-    var postArray = [];
     dispatch({ type: postConstants.GETPOST_REQUEST });
+    var postArray = [];
     firebase
       .firestore()
       .collection("listings")
+      .orderBy("createdAt", "desc")
       .get()
       .then((snapshot) => {
         if (snapshot) {
@@ -30,6 +31,7 @@ export const getPosts = () => {
                   user = true;
                   if (user == true) {
                     var postObj = {
+                      id: doc.id,
                       itemName: doc.data().itemName,
                       category: doc.data().category,
                       location: doc.data().location,
@@ -83,6 +85,7 @@ export const getPosts = () => {
 //creating new post
 export const newPost = (data) => {
   return async (dispatch) => {
+    dispatch({ type: postConstants.NEWPOST_REQUEST });
     var imageArray = [];
     let count = data.images.length;
 
@@ -113,6 +116,10 @@ export const newPost = (data) => {
           })
           .catch((error) => {
             console.log(error);
+            dispatch({
+              type: postConstants.NEWPOST_FAILURE,
+              response: error.message,
+            });
           });
       });
     }
@@ -134,11 +141,21 @@ export const newPost = (data) => {
           createdAt: Date.now(),
         })
         .then(() => {
-          getPosts();
+          dispatch({
+            type: postConstants.NEWPOST_SUCCESS,
+          });
+          dispatch({
+            type: postConstants.NEWPOST_SHOW_RESULT,
+          });
+          dispatch(getPosts());
           data.navigation.navigate("listings");
         })
         .catch((error) => {
           console.log(error);
+          dispatch({
+            type: postConstants.NEWPOST_FAILURE,
+            response: error.message,
+          });
         });
     };
   };

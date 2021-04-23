@@ -3,6 +3,7 @@ import { authConstants } from "../actions/constants";
 const initState = {
   user: null,
   loading: false,
+  loggedIn: false,
   result: false,
   message: "",
 };
@@ -21,6 +22,7 @@ const authReducer = (state = initState, action) => {
         ...state,
         result: true,
         loading: false,
+        loggedIn: true,
         user: action.currentUser,
         message: "Registration successful",
       };
@@ -29,6 +31,8 @@ const authReducer = (state = initState, action) => {
       state = {
         ...state,
         result: false,
+        loggedIn: false,
+        user: null,
         loading: false,
         message: action.response,
       };
@@ -46,6 +50,7 @@ const authReducer = (state = initState, action) => {
         ...state,
         result: true,
         loading: false,
+        loggedIn: true,
         user: action.currentUser,
         message: "Login successful",
       };
@@ -55,6 +60,8 @@ const authReducer = (state = initState, action) => {
         ...state,
         result: false,
         loading: false,
+        loggedIn: false,
+        user: null,
         message: action.response,
       };
       break;
@@ -68,9 +75,11 @@ const authReducer = (state = initState, action) => {
       break;
     case authConstants.LOGOUT_SUCCESS:
       state = {
-        ...initState,
+        ...state,
         result: true,
         loading: false,
+        loggedIn: false,
+        user: null,
         message: "Logout successful",
       };
       break;

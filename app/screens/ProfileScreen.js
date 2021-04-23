@@ -9,15 +9,15 @@ const ProfileScreen = ({ navigation, props }) => {
   const dispatch = useDispatch();
 
   const handleLogout = () => {
-    dispatch(logOut(navigation));
+    dispatch(logOut());
   };
 
   return (
     <View style={styles.background}>
       <View>
-        <Text>Profile</Text>
+        <Text style={{ fontSize: 32 }}>Profile</Text>
         <Pressable onPress={handleLogout}>
-          <Text>logout</Text>
+          <Text style={{ fontSize: 28, marginTop: 25 }}>logout</Text>
         </Pressable>
       </View>
       <NavigationTab data={navigation} screen="account" />

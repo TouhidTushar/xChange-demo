@@ -110,47 +110,53 @@ export const login = (data) => {
 
 export const loggedInState = () => {
   return async (dispatch) => {
-    dispatch({ type: authConstants.LOGIN_REQUEST });
-    firebase
-      .firestore()
-      .collection("users")
-      .doc(firebase.auth().currentUser.uid)
-      .get()
-      .then((snapshot) => {
-        if (snapshot.exists) {
-          dispatch({
-            type: authConstants.LOGIN_SUCCESS,
-            currentUser: snapshot.data(),
+    firebase.auth().onAuthStateChanged(function (user) {
+      if (user) {
+        dispatch({ type: authConstants.LOGIN_REQUEST });
+        firebase
+          .firestore()
+          .collection("users")
+          .doc(firebase.auth().currentUser.uid)
+          .get()
+          .then((snapshot) => {
+            if (snapshot.exists) {
+              dispatch({
+                type: authConstants.LOGIN_SUCCESS,
+                currentUser: snapshot.data(),
+              });
+            } else {
+              console.log(error);
+              dispatch({
+                type: authConstants.LOGIN_FAILURE,
+                response: error.message,
+              });
+            }
+          })
+          .catch((error) => {
+            console.log(error);
+            dispatch({
+              type: authConstants.LOGIN_FAILURE,
+              response: error.message,
+            });
           });
-        } else {
-          console.log(error);
-          dispatch({
-            type: authConstants.LOGIN_FAILURE,
-            response: error.message,
-          });
-        }
-      })
-      .catch((error) => {
-        console.log(error);
+      } else {
         dispatch({
           type: authConstants.LOGIN_FAILURE,
-          response: error.message,
+          response: "session expired!",
         });
-      });
+      }
+    });
   };
 };
 
-export const logOut = (navigation) => {
+export const logOut = () => {
   return async (dispatch) => {
     dispatch({ type: authConstants.LOGOUT_REQUEST });
     firebase
       .auth()
       .signOut()
       .then(() => {
-        setTimeout(() => {
-          dispatch({ type: authConstants.LOGOUT_SUCCESS });
-          navigation.navigate("welcome");
-        }, 1000);
+        dispatch({ type: authConstants.LOGOUT_SUCCESS });
       })
       .catch((error) => {
         console.log(error);

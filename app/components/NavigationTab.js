@@ -1,28 +1,14 @@
 import React, { useState, useEffect } from "react";
 import colors from "../colors";
-import firebase from "firebase";
 import { FontAwesome5, Ionicons } from "@expo/vector-icons";
-import { StyleSheet, Text, View, Pressable, Alert } from "react-native";
+import { StyleSheet, Text, View, Pressable } from "react-native";
+import { useSelector } from "react-redux";
 
 const NavigationTab = (props) => {
   const navigation = props.data;
   const currScreen = props.screen;
   const discardModal = props.action;
-  const [loggedIn, setLoggedIn] = useState(false);
-
-  useEffect(() => {
-    let mounted = true;
-    if (mounted == true) {
-      firebase.auth().onAuthStateChanged((user) => {
-        if (!user) {
-          setLoggedIn(false);
-        } else {
-          setLoggedIn(true);
-        }
-      });
-    }
-    return () => (mounted = false);
-  }, []);
+  const auth = useSelector((state) => state.auth);
 
   return (
     <>
@@ -77,7 +63,7 @@ const NavigationTab = (props) => {
             currScreen === "postingAlt"
               ? discardModal
               : () => {
-                  loggedIn == true
+                  auth.loggedIn == true
                     ? navigation.navigate("account")
                     : navigation.navigate("login");
                 }
@@ -131,7 +117,7 @@ const NavigationTab = (props) => {
       <Pressable
         style={styles.mainButton}
         onPress={() => {
-          loggedIn == true
+          auth.loggedIn == true
             ? navigation.navigate("posting")
             : navigation.navigate("login");
         }}

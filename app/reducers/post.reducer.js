@@ -4,6 +4,7 @@ const initState = {
   posts: [],
   loading: false,
   result: false,
+  render: false,
   message: "",
 };
 
@@ -12,7 +13,7 @@ const postReducer = (state = initState, action) => {
     //get all posts
     case postConstants.GETPOST_REQUEST:
       state = {
-        ...initState,
+        ...state,
         loading: true,
       };
       break;
@@ -31,6 +32,41 @@ const postReducer = (state = initState, action) => {
         result: false,
         loading: false,
         message: action.response,
+      };
+      break;
+
+    //new post
+    case postConstants.NEWPOST_REQUEST:
+      state = {
+        ...state,
+        loading: true,
+      };
+      break;
+    case postConstants.NEWPOST_SUCCESS:
+      state = {
+        ...state,
+        result: true,
+        message: "done",
+      };
+      break;
+    case postConstants.NEWPOST_FAILURE:
+      state = {
+        ...state,
+        result: false,
+        loading: false,
+        message: action.response,
+      };
+      break;
+    case postConstants.NEWPOST_SHOW_RESULT:
+      state = {
+        ...state,
+        render: true,
+      };
+      break;
+    case postConstants.NEWPOST_HIDE_RESULT:
+      state = {
+        ...state,
+        render: false,
       };
       break;
   }
