@@ -7,6 +7,7 @@ import { Provider, useDispatch, useSelector } from "react-redux";
 import { NavigationContainer } from "@react-navigation/native";
 import { createStackNavigator } from "@react-navigation/stack";
 // import { StatusBar } from "expo-status-bar";
+import { Ionicons } from "@expo/vector-icons";
 import { StyleSheet, Text, View, Animated, Dimensions } from "react-native";
 import WelcomeScreen from "./app/screens/WelcomeScreen";
 import ListingsScreen from "./app/screens/ListingsScreen";
@@ -94,6 +95,54 @@ const Bubbles = (props) => {
   );
 };
 
+const Checkmark = (props) => {
+  const scaleAnim = useRef(new Animated.Value(10)).current;
+
+  useEffect(() => {
+    Animated.timing(scaleAnim, {
+      toValue: 1,
+      delay: 500,
+      duration: 800,
+      useNativeDriver: false,
+    }).start();
+  }, [scaleAnim]);
+
+  return (
+    <Animated.View
+      style={{
+        ...props.style,
+        transform: [{ scale: scaleAnim }],
+      }}
+    >
+      {props.children}
+    </Animated.View>
+  );
+};
+
+const Checkreveal = (props) => {
+  const scaleAnim = useRef(new Animated.Value(50)).current;
+
+  useEffect(() => {
+    Animated.timing(scaleAnim, {
+      toValue: 0,
+      delay: 1350,
+      duration: 500,
+      useNativeDriver: false,
+    }).start();
+  }, [scaleAnim]);
+
+  return (
+    <Animated.View
+      style={{
+        ...props.style,
+        width: scaleAnim,
+      }}
+    >
+      {props.children}
+    </Animated.View>
+  );
+};
+
 const App = () => {
   const dispatch = useDispatch();
   const [loaded, setLoaded] = useState(false);
@@ -115,14 +164,14 @@ const App = () => {
   useEffect(() => {
     let mounted = true;
     if (mounted) {
-      if (auth.loading == true || post.loading == true) {
+      if (auth.loading == true || post.posting == true) {
         setLoaded(false);
       } else {
         setLoaded(true);
       }
     }
     return () => (mounted = false);
-  }, [auth.loading, post.loading]);
+  }, [auth.loading, post.posting]);
 
   useEffect(() => {
     let mounted = true;
@@ -131,7 +180,7 @@ const App = () => {
         setPostDone(true);
         setTimeout(() => {
           dispatch({ type: postConstants.NEWPOST_HIDE_RESULT });
-        }, 2000);
+        }, 2250);
       } else {
         setPostDone(false);
       }
@@ -179,8 +228,11 @@ const App = () => {
           </View>
         ) : null}
         {postDone == true ? (
-          <View style={styles.loader}>
-            <Text style={styles.loaderText}>DONE!</Text>
+          <View style={styles.checkLoaderWrapper}>
+            <Checkmark style={styles.checkLoader}>
+              <Ionicons name="checkmark" size={52} color={colors.accent} />
+              <Checkreveal style={styles.checkCover}></Checkreveal>
+            </Checkmark>
           </View>
         ) : null}
         <NavigationContainer>
@@ -209,6 +261,31 @@ const styles = StyleSheet.create({
     backgroundColor: colors.theme,
     alignItems: "center",
     justifyContent: "center",
+  },
+  checkLoaderWrapper: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    elevation: 10,
+    height: "100%",
+    width: "100%",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  checkLoader: {
+    elevation: 10,
+    height: 100,
+    width: 100,
+    borderRadius: 50,
+    backgroundColor: colors.theme,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  checkCover: {
+    backgroundColor: colors.theme,
+    position: "absolute",
+    right: 25,
+    height: 50,
   },
   loaderText: {
     fontSize: 28,

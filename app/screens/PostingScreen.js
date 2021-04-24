@@ -296,6 +296,12 @@ const PostingScreen = ({ navigation, props }) => {
   return (
     <View style={styles.wrapper}>
       <View style={styles.header}>
+        <Pressable
+          onPress={() => navigation.goBack()}
+          style={{ position: "absolute", left: 10, bottom: 8 }}
+        >
+          <Ionicons name="arrow-back-outline" size={24} color={colors.accent} />
+        </Pressable>
         <Text style={styles.headerText}>Create post</Text>
       </View>
 
@@ -694,7 +700,7 @@ const styles = StyleSheet.create({
   },
   header: {
     backgroundColor: colors.theme,
-    width: "120%",
+    width: "100%",
     height: 75,
     paddingBottom: 8,
     alignItems: "center",

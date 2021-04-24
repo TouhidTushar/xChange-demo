@@ -5,13 +5,10 @@ import {
   Text,
   View,
   FlatList,
-  Pressable,
-  TextInput,
-  Image,
   Dimensions,
 } from "react-native";
-import { ScrollView } from "react-native-gesture-handler";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
+import { getPosts } from "../actions";
 import colors from "../colors";
 import NavigationTab from "../components/NavigationTab";
 import PostCard from "../components/PostCard";
@@ -41,7 +38,21 @@ const SlideInView = (props) => {
 };
 
 const ListingScreen = ({ navigation, props }) => {
+  const postState = useSelector((state) => state.post);
   const posts = useSelector((state) => state.post.posts);
+  const dispatch = useDispatch();
+  const [isFetching, setIsFetching] = useState(false);
+
+  const handleReload = () => {
+    setIsFetching(true);
+    dispatch(getPosts());
+  };
+
+  useEffect(() => {
+    if (postState.loading == false) {
+      setIsFetching(false);
+    }
+  }, [postState.loading]);
 
   return (
     <View style={styles.background}>
@@ -53,22 +64,19 @@ const ListingScreen = ({ navigation, props }) => {
           height: 75,
         }}
       ></View>
-      <ScrollView
+      <FlatList
+        data={posts}
+        renderItem={({ item }) => <PostCard post={item} nav={navigation} />}
+        keyExtractor={(item) => item.id}
+        refreshing={isFetching}
+        onRefresh={handleReload}
         contentContainerStyle={{
           width: Dimensions.get("window").width,
           alignItems: "center",
+          paddingTop: 10,
+          paddingBottom: 45,
         }}
-      >
-        <View style={{ height: 10 }}></View>
-
-        {posts.map((item, index) => {
-          return (
-            <PostCard key={item.itemName + index} post={item} serial={index} />
-          );
-        })}
-
-        <View style={{ height: 45 }}></View>
-      </ScrollView>
+      />
       <View
         style={{
           height: 55,

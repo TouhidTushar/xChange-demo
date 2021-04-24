@@ -3,6 +3,7 @@ import { postConstants } from "../actions/constants";
 const initState = {
   posts: [],
   loading: false,
+  posting: false,
   result: false,
   render: false,
   message: "",
@@ -22,6 +23,7 @@ const postReducer = (state = initState, action) => {
         ...state,
         result: true,
         loading: false,
+        posting: false,
         posts: action.posts,
         message: "posts retrieved",
       };
@@ -31,6 +33,7 @@ const postReducer = (state = initState, action) => {
         ...state,
         result: false,
         loading: false,
+        posting: false,
         message: action.response,
       };
       break;
@@ -39,7 +42,7 @@ const postReducer = (state = initState, action) => {
     case postConstants.NEWPOST_REQUEST:
       state = {
         ...state,
-        loading: true,
+        posting: true,
       };
       break;
     case postConstants.NEWPOST_SUCCESS:
@@ -53,7 +56,7 @@ const postReducer = (state = initState, action) => {
       state = {
         ...state,
         result: false,
-        loading: false,
+        posting: false,
         message: action.response,
       };
       break;
