@@ -3,6 +3,7 @@ import { authConstants } from "../actions/constants";
 const initState = {
   user: null,
   loading: false,
+  watching: false,
   loggedIn: false,
   result: false,
   message: "",
@@ -88,6 +89,29 @@ const authReducer = (state = initState, action) => {
         ...state,
         result: false,
         loading: false,
+        message: action.response,
+      };
+      break;
+
+    //watchlist
+    case authConstants.WATCH_REQUEST:
+      state = {
+        ...state,
+        watching: true,
+      };
+      break;
+    case authConstants.WATCH_SUCCESS:
+      state = {
+        ...state,
+        watching: false,
+        user: { ...state.user, watchList: action.watchlist },
+        message: action.response,
+      };
+      break;
+    case authConstants.WATCH_FAILURE:
+      state = {
+        ...state,
+        watching: false,
         message: action.response,
       };
       break;

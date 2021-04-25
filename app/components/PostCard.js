@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import {
   StyleSheet,
   View,
@@ -6,32 +6,79 @@ import {
   Pressable,
   Image,
   Dimensions,
+  Easing,
+  Animated,
 } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
+import { Ionicons, AntDesign } from "@expo/vector-icons";
 import colors from "../colors";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
+import { addToWatch, removeFromWatch } from "../actions";
+
+const LoaderView = (props) => {
+  const loadingAnim = useRef(new Animated.Value(0)).current;
+  const rotation = loadingAnim.interpolate({
+    inputRange: [0, 1],
+    outputRange: ["0deg", "360deg"],
+  });
+
+  useEffect(() => {
+    Animated.loop(
+      Animated.timing(loadingAnim, {
+        toValue: 1,
+        duration: 500,
+        useNativeDriver: true,
+        easing: Easing.linear,
+      })
+    ).start();
+  }, [loadingAnim]);
+
+  return (
+    <Animated.View
+      style={{
+        ...props.style,
+        transform: [{ rotateZ: rotation }],
+      }}
+    >
+      {props.children}
+    </Animated.View>
+  );
+};
 
 const PostCard = (props) => {
   const data = props.post;
   const navigation = props.nav;
+  const dispatch = useDispatch();
   const auth = useSelector((state) => state.auth);
   const [callModal, setCallModal] = useState(false);
-  const [watchModal, setWatchModal] = useState(false);
-  const [watching, setWatching] = useState(false);
+  const [loadingIcon, setLoadingIcon] = useState(false);
 
-  const handleWatch = () => {
-    if (watchModal == false) {
-      setWatchModal(true);
-      setTimeout(() => {
-        setWatchModal(false);
-      }, 2000);
+  useEffect(() => {
+    if (auth.watching == false) {
+      setLoadingIcon(false);
     }
+  }, [auth.watching]);
+
+  const handleAddToWatchlist = () => {
+    dispatch(addToWatch(data.id));
+    setLoadingIcon(true);
+  };
+
+  const handleRemoveFromWatchlist = () => {
+    dispatch(removeFromWatch(data.id));
+    setLoadingIcon(true);
   };
 
   return (
     <View style={styles.cardContainer}>
-      <Image source={{ uri: data.images[0].image }} style={styles.imageBox} />
-      <View style={styles.overlay}>
+      <Pressable
+        onPress={() => navigation.navigate("itemDetails", { item: data })}
+      >
+        <Image source={{ uri: data.images[0].image }} style={styles.imageBox} />
+      </Pressable>
+      <Pressable
+        onPress={() => navigation.navigate("itemDetails", { item: data })}
+        style={styles.overlay}
+      >
         <Text style={styles.mainText}>{data.itemName}</Text>
         <View style={styles.fieldsBox}>
           <View style={styles.postfields}>
@@ -43,48 +90,37 @@ const PostCard = (props) => {
             <Text style={styles.subText}>{data.price} BDT</Text>
           </View>
         </View>
-      </View>
-      {watching ? (
-        <Pressable
-          disabled={callModal == true ? true : false}
-          onPress={
-            auth.loggedIn
-              ? () => {
-                  handleWatch();
-                  setWatching(false);
-                }
-              : () => navigation.navigate("login")
-          }
-          style={{ ...styles.watchIcon, backgroundColor: colors.accent }}
-        >
-          <Ionicons name="eye-outline" size={24} color={colors.primary} />
-        </Pressable>
-      ) : (
-        <Pressable
-          style={styles.watchIcon}
-          disabled={callModal == true ? true : false}
-          onPress={
-            auth.loggedIn
-              ? () => {
-                  handleWatch();
-                  setWatching(true);
-                }
-              : () => navigation.navigate("login")
-          }
-        >
-          <Ionicons name="eye-outline" size={24} color={colors.accent} />
-        </Pressable>
-      )}
+      </Pressable>
+      {auth.loggedIn ? (
+        loadingIcon == true ? (
+          <LoaderView
+            style={{ ...styles.watchIcon, backgroundColor: colors.accent }}
+          >
+            <AntDesign name="loading1" size={24} color={colors.primary} />
+          </LoaderView>
+        ) : auth.user.watchList.includes(data.id) ? (
+          <Pressable
+            disabled={callModal == true ? true : false}
+            onPress={handleRemoveFromWatchlist}
+            style={{ ...styles.watchIcon, backgroundColor: colors.accent }}
+          >
+            <Ionicons name="eye-outline" size={24} color={colors.primary} />
+          </Pressable>
+        ) : (
+          <Pressable
+            style={styles.watchIcon}
+            disabled={callModal == true ? true : false}
+            onPress={handleAddToWatchlist}
+          >
+            <Ionicons name="eye-outline" size={24} color={colors.accent} />
+          </Pressable>
+        )
+      ) : null}
       {callModal ? null : (
-        <Pressable
-          disabled={watchModal == true ? true : false}
-          style={styles.callIcon}
-          onPress={() => setCallModal(true)}
-        >
+        <Pressable style={styles.callIcon} onPress={() => setCallModal(true)}>
           <Ionicons name="call-outline" size={24} color={colors.accent} />
         </Pressable>
       )}
-
       {callModal ? (
         <>
           <View style={styles.modalBG}></View>
@@ -110,23 +146,6 @@ const PostCard = (props) => {
                 <Text style={{ ...styles.btnText, color: "tomato" }}>No</Text>
               </Pressable>
             </View>
-          </View>
-        </>
-      ) : null}
-
-      {watchModal ? (
-        <>
-          <View style={styles.modalBG}></View>
-          <View style={styles.callModalWrapper}>
-            {watching ? (
-              <Text style={{ fontSize: 18, color: colors.accent }}>
-                item added to watchlist
-              </Text>
-            ) : (
-              <Text style={{ fontSize: 18, color: colors.accent }}>
-                item removed from watchlist
-              </Text>
-            )}
           </View>
         </>
       ) : null}

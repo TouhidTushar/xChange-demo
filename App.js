@@ -12,9 +12,10 @@ import { StyleSheet, Text, View, Animated, Dimensions } from "react-native";
 import WelcomeScreen from "./app/screens/WelcomeScreen";
 import ListingsScreen from "./app/screens/ListingsScreen";
 import PostingScreen from "./app/screens/PostingScreen";
-import ProfileScreen from "./app/screens/ProfileScreen";
+import AccountScreen from "./app/screens/AccountScreen";
 import RegistrationScreen from "./app/screens/RegistrationScreen";
 import LoginScreen from "./app/screens/LoginScreen";
+import ItemScreen from "./app/screens/ItemScreen";
 import { loggedInState } from "./app/actions/auth.action";
 import { getCategories, getLocations, getPosts } from "./app/actions";
 import { postConstants } from "./app/actions/constants";
@@ -210,6 +211,7 @@ const App = () => {
             <Stack.Screen name="login" component={LoginScreen} />
             <Stack.Screen name="register" component={RegistrationScreen} />
             <Stack.Screen name="listings" component={ListingsScreen} />
+            <Stack.Screen name="itemDetails" component={ItemScreen} />
           </Stack.Navigator>
         </NavigationContainer>
       </>
@@ -242,7 +244,8 @@ const App = () => {
           >
             <Stack.Screen name="listings" component={ListingsScreen} />
             <Stack.Screen name="posting" component={PostingScreen} />
-            <Stack.Screen name="account" component={ProfileScreen} />
+            <Stack.Screen name="account" component={AccountScreen} />
+            <Stack.Screen name="itemDetails" component={ItemScreen} />
           </Stack.Navigator>
         </NavigationContainer>
       </>
@@ -271,6 +274,7 @@ const styles = StyleSheet.create({
     width: "100%",
     alignItems: "center",
     justifyContent: "center",
+    backgroundColor: colors.accent,
   },
   checkLoader: {
     elevation: 10,

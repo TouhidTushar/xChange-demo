@@ -15,12 +15,12 @@ const FadeInView = (props) => {
   useEffect(() => {
     Animated.timing(fadeAnim, {
       toValue: 1,
-      duration: 1500,
+      duration: 1000,
       useNativeDriver: true,
     }).start();
     Animated.timing(scaleAnim, {
       toValue: 1,
-      duration: 1500,
+      duration: 1000,
       useNativeDriver: true,
     }).start();
   }, [fadeAnim]);
@@ -45,12 +45,14 @@ const SlideInView = (props) => {
   useEffect(() => {
     Animated.timing(slideAnim, {
       toValue: 0,
-      duration: 1500,
+      delay: 1200,
+      duration: 1000,
       useNativeDriver: true,
     }).start();
     Animated.timing(fadeAnim, {
       toValue: 1,
-      duration: 1500,
+      delay: 1200,
+      duration: 1000,
       useNativeDriver: true,
     }).start();
   }, [slideAnim, fadeAnim]);

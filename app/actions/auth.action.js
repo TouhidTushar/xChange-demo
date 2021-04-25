@@ -108,6 +108,7 @@ export const login = (data) => {
   };
 };
 
+//check logged in user
 export const loggedInState = () => {
   return async (dispatch) => {
     firebase.auth().onAuthStateChanged(function (user) {
@@ -149,6 +150,7 @@ export const loggedInState = () => {
   };
 };
 
+//logout action
 export const logOut = () => {
   return async (dispatch) => {
     dispatch({ type: authConstants.LOGOUT_REQUEST });
@@ -162,6 +164,142 @@ export const logOut = () => {
         console.log(error);
         dispatch({
           type: authConstants.LOGOUT_FAILURE,
+          response: error.message,
+        });
+      });
+  };
+};
+
+//----other user actions----
+
+//add to watchlist
+export const addToWatch = (data) => {
+  var watchArray = [];
+  return async (dispatch) => {
+    dispatch({ type: authConstants.WATCH_REQUEST });
+    firebase
+      .firestore()
+      .collection("users")
+      .doc(firebase.auth().currentUser.uid)
+      .get()
+      .then((snapshot) => {
+        if (snapshot) {
+          if (snapshot.data().watchList) {
+            watchArray = snapshot.data().watchList;
+            watchArray.push(data);
+            firebase
+              .firestore()
+              .collection("users")
+              .doc(firebase.auth().currentUser.uid)
+              .update({
+                watchList: watchArray,
+              })
+              .then(() => {
+                dispatch({
+                  type: authConstants.WATCH_SUCCESS,
+                  watchlist: watchArray,
+                  response: "item added to watchlist",
+                });
+              })
+              .catch((error) => {
+                console.log(error);
+                dispatch({
+                  type: authConstants.WATCH_FAILURE,
+                  response: error.message,
+                });
+              });
+          } else {
+            watchArray.push(data);
+            firebase
+              .firestore()
+              .collection("users")
+              .doc(firebase.auth().currentUser.uid)
+              .update({
+                watchList: watchArray,
+              })
+              .then(() => {
+                dispatch({
+                  type: authConstants.WATCH_SUCCESS,
+                  watchlist: watchArray,
+                  response: "item added to watchlist",
+                });
+              })
+              .catch((error) => {
+                console.log(error);
+                dispatch({
+                  type: authConstants.WATCH_FAILURE,
+                  response: error.message,
+                });
+              });
+          }
+        } else {
+          dispatch({
+            type: authConstants.WATCH_FAILURE,
+            response: "something went wrong!",
+          });
+        }
+      })
+      .catch((error) => {
+        dispatch({
+          type: authConstants.WATCH_FAILURE,
+          response: error.message,
+        });
+      });
+  };
+};
+
+//remove from watchlist
+export const removeFromWatch = (data) => {
+  var watchArray = [];
+  return async (dispatch) => {
+    dispatch({ type: authConstants.WATCH_REQUEST });
+    firebase
+      .firestore()
+      .collection("users")
+      .doc(firebase.auth().currentUser.uid)
+      .get()
+      .then((snapshot) => {
+        if (snapshot) {
+          if (snapshot.data().watchList.length > 0) {
+            watchArray = snapshot.data().watchList;
+            watchArray.pop(data);
+            firebase
+              .firestore()
+              .collection("users")
+              .doc(firebase.auth().currentUser.uid)
+              .update({
+                watchList: watchArray,
+              })
+              .then(() => {
+                dispatch({
+                  type: authConstants.WATCH_SUCCESS,
+                  watchlist: watchArray,
+                  response: "item removed from watchlist",
+                });
+              })
+              .catch((error) => {
+                console.log(error);
+                dispatch({
+                  type: authConstants.WATCH_FAILURE,
+                  response: error.message,
+                });
+              });
+          } else {
+            dispatch({
+              type: authConstants.WATCH_FAILURE,
+              response: "something went wrong!",
+            });
+          }
+        } else {
+          dispatch({
+            type: authConstants.WATCH_FAILURE,
+            response: "something went wrong!",
+          });
+        }
+      })
+      .catch((error) => {
+        dispatch({
+          type: authConstants.WATCH_FAILURE,
           response: error.message,
         });
       });
