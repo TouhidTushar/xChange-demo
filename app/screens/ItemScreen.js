@@ -1,25 +1,66 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
   StyleSheet,
+  Animated,
   View,
   Text,
   Pressable,
   Dimensions,
   Image,
+  Easing,
 } from "react-native";
 import colors from "../colors";
-import { Ionicons, MaterialIcons } from "@expo/vector-icons";
+import { Ionicons, MaterialIcons, AntDesign } from "@expo/vector-icons";
 import NavigationTab from "../components/NavigationTab";
 import { ScrollView } from "react-native-gesture-handler";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
+import { addToWatch, removeFromWatch } from "../actions";
 import firebase from "firebase";
+
+const LoaderView = (props) => {
+  const loadingAnim = useRef(new Animated.Value(0)).current;
+  const rotation = loadingAnim.interpolate({
+    inputRange: [0, 1],
+    outputRange: ["0deg", "360deg"],
+  });
+
+  useEffect(() => {
+    Animated.loop(
+      Animated.timing(loadingAnim, {
+        toValue: 1,
+        duration: 500,
+        useNativeDriver: true,
+        easing: Easing.linear,
+      })
+    ).start();
+  }, [loadingAnim]);
+
+  return (
+    <Animated.View
+      style={{
+        ...props.style,
+        transform: [{ rotateZ: rotation }],
+      }}
+    >
+      {props.children}
+    </Animated.View>
+  );
+};
 
 const ItemScreen = ({ route, navigation, props }) => {
   const { item } = route.params;
   const value = new Date(item.createdAt);
+  const dispatch = useDispatch();
   const auth = useSelector((state) => state.auth);
   const [imgActive, setImgActive] = useState(0);
   const [postControl, setPostControl] = useState(false);
+  const [loadingIcon, setLoadingIcon] = useState(false);
+
+  useEffect(() => {
+    if (auth.watching == false) {
+      setLoadingIcon(false);
+    }
+  }, [auth.watching]);
 
   const handleImageScroll = ({ nativeEvent }) => {
     const slide = Math.ceil(
@@ -52,6 +93,24 @@ const ItemScreen = ({ route, navigation, props }) => {
     }
   };
 
+  const handleAddToWatch = () => {
+    dispatch(addToWatch(item.id));
+    setLoadingIcon(true);
+  };
+
+  const handleRemoveFromWatch = () => {
+    dispatch(removeFromWatch(item.id));
+    setLoadingIcon(true);
+  };
+
+  const handleMessage = () => {
+    console.log("message");
+  };
+
+  const handleCall = () => {
+    console.log("call");
+  };
+
   return (
     <View style={styles.wrapper}>
       <View style={styles.header}>
@@ -82,7 +141,6 @@ const ItemScreen = ({ route, navigation, props }) => {
             <Text style={{ color: colors.accent }}>Delete</Text>
             <Text style={{ color: colors.accent }}>Archive</Text>
             <Text style={{ color: colors.accent }}>Mark as sold</Text>
-            {/* <Text style={{ color: colors.accent }}></Text> */}
           </View>
         ) : null}
       </View>
@@ -127,6 +185,102 @@ const ItemScreen = ({ route, navigation, props }) => {
           <Ionicons name="pricetag-outline" size={24} color={colors.theme} />
           <Text style={styles.priceText}>Asking price: {item.price} BDT</Text>
         </View>
+
+        {auth.loggedIn ? (
+          firebase.auth().currentUser.uid == item.postedBy.userId ? null : (
+            <View style={styles.itemActionBox}>
+              {loadingIcon == true ? (
+                <LoaderView
+                  style={{
+                    ...styles.watchIcon,
+                    justifyContent: "center",
+                    alignItems: "center",
+                    width: 125,
+                    padding: 8,
+                  }}
+                >
+                  <AntDesign name="loading1" size={22} color={colors.primary} />
+                </LoaderView>
+              ) : auth.user.watchList == undefined ||
+                auth.user.watchList == null ? (
+                <Pressable
+                  onPress={handleAddToWatch}
+                  style={{
+                    ...styles.actionIcons,
+                    backgroundColor: colors.accent,
+                  }}
+                >
+                  <Ionicons name="eye-outline" size={28} color={colors.theme} />
+                  <Text style={{ ...styles.iconText, color: colors.theme }}>
+                    add to watchlist
+                  </Text>
+                </Pressable>
+              ) : auth.user.watchList.includes(item.id) ? (
+                <Pressable
+                  onPress={handleRemoveFromWatch}
+                  style={{
+                    ...styles.actionIcons,
+                    backgroundColor: colors.accent,
+                  }}
+                >
+                  <Ionicons
+                    name="eye-outline"
+                    size={28}
+                    color={colors.contrast}
+                  />
+                  <Text style={{ ...styles.iconText, color: colors.contrast }}>
+                    remove
+                  </Text>
+                </Pressable>
+              ) : (
+                <Pressable
+                  onPress={handleAddToWatch}
+                  style={{
+                    ...styles.actionIcons,
+                    backgroundColor: colors.accent,
+                  }}
+                >
+                  <Ionicons name="eye-outline" size={28} color={colors.theme} />
+                  <Text style={{ ...styles.iconText, color: colors.theme }}>
+                    add to watchlist
+                  </Text>
+                </Pressable>
+              )}
+
+              <Pressable
+                onPress={handleMessage}
+                style={{
+                  ...styles.actionIcons,
+                  backgroundColor: colors.accent,
+                }}
+              >
+                <Ionicons
+                  name="chatbox-ellipses-outline"
+                  size={28}
+                  color={colors.theme}
+                />
+                <Text style={{ ...styles.iconText, color: colors.theme }}>
+                  ask seller
+                </Text>
+              </Pressable>
+
+              <Pressable
+                onPress={handleCall}
+                style={{
+                  ...styles.actionIcons,
+                  backgroundColor: colors.accent,
+                }}
+              >
+                <Ionicons name="call-outline" size={28} color={colors.theme} />
+                <Text style={{ ...styles.iconText, color: colors.theme }}>
+                  contact seller
+                </Text>
+              </Pressable>
+            </View>
+          )
+        ) : (
+          <View style={styles.itemActionBox}></View>
+        )}
 
         <View style={styles.fieldsContainer}>
           <View style={styles.fields}>
@@ -227,7 +381,7 @@ const styles = StyleSheet.create({
     fontSize: 28,
     color: colors.contrast,
     marginTop: 10,
-    marginBottom: 20,
+    marginBottom: 8,
     textShadowColor: colors.primary,
     textShadowOffset: {
       height: 1,
@@ -237,19 +391,29 @@ const styles = StyleSheet.create({
     width: "100%",
     textAlign: "center",
   },
+  priceBox: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+  },
   priceText: {
     fontSize: 20,
     marginLeft: 5,
     color: colors.theme,
   },
-  priceBox: {
+  itemActionBox: {
     flexDirection: "row",
-    alignItems: "center",
-    borderRadius: 5,
-    borderColor: colors.theme,
-    borderWidth: 2,
-    padding: 10,
+    marginTop: 20,
+  },
+  actionIcons: {
     justifyContent: "center",
+    alignItems: "center",
+    padding: 8,
+    borderRadius: 10,
+    width: 125,
+  },
+  iconText: {
+    fontSize: 16,
   },
   fieldsContainer: {
     width: "92%",

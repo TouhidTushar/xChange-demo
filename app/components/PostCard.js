@@ -13,6 +13,7 @@ import { Ionicons, AntDesign } from "@expo/vector-icons";
 import colors from "../colors";
 import { useDispatch, useSelector } from "react-redux";
 import { addToWatch, removeFromWatch } from "../actions";
+import firebase from "firebase";
 
 const LoaderView = (props) => {
   const loadingAnim = useRef(new Animated.Value(0)).current;
@@ -92,12 +93,21 @@ const PostCard = (props) => {
         </View>
       </Pressable>
       {auth.loggedIn ? (
-        loadingIcon == true ? (
+        firebase.auth().currentUser.uid ==
+        data.postedBy.userId ? null : loadingIcon == true ? (
           <LoaderView
             style={{ ...styles.watchIcon, backgroundColor: colors.accent }}
           >
             <AntDesign name="loading1" size={24} color={colors.primary} />
           </LoaderView>
+        ) : auth.user.watchList == undefined || auth.user.watchList == null ? (
+          <Pressable
+            style={styles.watchIcon}
+            disabled={callModal == true ? true : false}
+            onPress={handleAddToWatchlist}
+          >
+            <Ionicons name="eye-outline" size={24} color={colors.accent} />
+          </Pressable>
         ) : auth.user.watchList.includes(data.id) ? (
           <Pressable
             disabled={callModal == true ? true : false}
@@ -116,11 +126,30 @@ const PostCard = (props) => {
           </Pressable>
         )
       ) : null}
-      {callModal ? null : (
+
+      {auth.loggedIn ? (
+        firebase.auth().currentUser.uid == data.postedBy.userId ? (
+          <Pressable
+            style={styles.callIcon}
+            onPress={() => console.log("post control")}
+          >
+            <Ionicons
+              name="ellipsis-vertical"
+              size={24}
+              color={colors.accent}
+            />
+          </Pressable>
+        ) : callModal ? null : (
+          <Pressable style={styles.callIcon} onPress={() => setCallModal(true)}>
+            <Ionicons name="call-outline" size={24} color={colors.accent} />
+          </Pressable>
+        )
+      ) : callModal ? null : (
         <Pressable style={styles.callIcon} onPress={() => setCallModal(true)}>
           <Ionicons name="call-outline" size={24} color={colors.accent} />
         </Pressable>
       )}
+
       {callModal ? (
         <>
           <View style={styles.modalBG}></View>

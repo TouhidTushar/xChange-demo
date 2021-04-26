@@ -45,14 +45,14 @@ const SlideInView = (props) => {
   useEffect(() => {
     Animated.timing(slideAnim, {
       toValue: 0,
-      delay: 1200,
-      duration: 1000,
+      delay: 1500,
+      duration: 800,
       useNativeDriver: true,
     }).start();
     Animated.timing(fadeAnim, {
       toValue: 1,
-      delay: 1200,
-      duration: 1000,
+      delay: 1500,
+      duration: 800,
       useNativeDriver: true,
     }).start();
   }, [slideAnim, fadeAnim]);

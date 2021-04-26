@@ -38,6 +38,8 @@ export const getPosts = () => {
                       description: doc.data().description,
                       images: doc.data().images,
                       price: doc.data().price,
+                      sold: doc.data().sold,
+                      archived: doc.data().archived,
                       createdAt: doc.data().createdAt,
                       postedBy: _postUser,
                     };
@@ -137,6 +139,8 @@ export const newPost = (data) => {
           description: data.description,
           location: data.location,
           images: imageArray,
+          sold: false,
+          archived: false,
           postedBy: firebase.auth().currentUser.uid,
           createdAt: Date.now(),
         })

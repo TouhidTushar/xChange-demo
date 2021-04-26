@@ -228,6 +228,7 @@ const RegistrationScreen = ({ navigation, props }) => {
           placeholder="contact"
           autoCapitalize="none"
           autoCorrect={false}
+          keyboardType="phone-pad"
           onFocus={() => setFocused(3)}
           onBlur={() => setFocused(0)}
           style={focused == 3 ? styles.inputBoxFocused : styles.inputBox}

@@ -32,8 +32,10 @@ const AccountScreen = ({ navigation, props }) => {
   const myWatchlist = () => {
     var myArray = [];
     posts.map((item) => {
-      if (user.watchList.includes(item.id)) {
-        myArray.push(item);
+      if (user.watchList != undefined || user.watchList != null) {
+        if (user.watchList.includes(item.id)) {
+          myArray.push(item);
+        }
       }
     });
     return myArray;
@@ -117,7 +119,11 @@ const AccountScreen = ({ navigation, props }) => {
             <Text style={styles.menuText}>archive</Text>
           </Pressable>
 
-          <View style={styles.menuBox}></View>
+          <View style={styles.menuBox}>
+            <Text style={{ fontSize: 18, marginLeft: 8, color: colors.accent }}>
+              {user.username}
+            </Text>
+          </View>
 
           <View
             style={{
@@ -245,7 +251,6 @@ const styles = StyleSheet.create({
   menuOverlay: {
     position: "absolute",
     backgroundColor: colors.accent,
-    // justifyContent: "flex-end",
     alignItems: "center",
     width: "100%",
     height: "100%",
