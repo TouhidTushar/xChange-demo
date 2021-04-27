@@ -9,6 +9,8 @@ export const getPosts = () => {
     firebase
       .firestore()
       .collection("listings")
+      .where("archived", "==", false)
+      .where("sold", "==", false)
       .orderBy("createdAt", "desc")
       .get()
       .then((snapshot) => {

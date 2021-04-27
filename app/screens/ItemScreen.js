@@ -140,15 +140,50 @@ const ItemScreen = ({ route, navigation, props }) => {
         <Text style={styles.headerText}>Item details</Text>
         {postControl ? (
           <View style={styles.postControlPanel}>
-            <Text style={{ color: colors.accent }}>Edit</Text>
-            <Text style={{ color: colors.accent }}>Delete</Text>
-            <Text style={{ color: colors.accent }}>Archive</Text>
-            <Text style={{ color: colors.accent }}>Mark as sold</Text>
+            <Pressable>
+              <View style={styles.postControlBtns}>
+                <Ionicons name="create-outline" size={24} color="black" />
+                <Text style={styles.controlBtnText}>Edit</Text>
+              </View>
+            </Pressable>
+            <Pressable>
+              <View style={styles.postControlBtns}>
+                <Ionicons name="trash-outline" size={24} color="tomato" />
+                <Text style={{ ...styles.controlBtnText, color: "tomato" }}>
+                  Delete
+                </Text>
+              </View>
+            </Pressable>
+            <Pressable>
+              <View style={styles.postControlBtns}>
+                <Ionicons name="archive-outline" size={24} color="black" />
+                <Text style={styles.controlBtnText}>Archive</Text>
+              </View>
+            </Pressable>
+            <Pressable>
+              <View style={styles.postControlBtns}>
+                <Ionicons
+                  name="checkmark-done-outline"
+                  size={24}
+                  color="black"
+                />
+                <Text style={styles.controlBtnText}>Mark as sold</Text>
+              </View>
+            </Pressable>
+            <Ionicons
+              name="caret-up"
+              size={30}
+              color={colors.accent}
+              style={styles.tooltip}
+            />
           </View>
         ) : null}
       </View>
 
-      <ScrollView contentContainerStyle={styles.scrollArea}>
+      <ScrollView
+        contentContainerStyle={styles.scrollArea}
+        showsVerticalScrollIndicator={false}
+      >
         <ScrollView
           pagingEnabled
           horizontal
@@ -412,12 +447,27 @@ const styles = StyleSheet.create({
   },
   postControlPanel: {
     position: "absolute",
-    top: 75,
-    right: 0,
-    width: 150,
-    height: 200,
-    backgroundColor: colors.primary,
-    borderBottomLeftRadius: 10,
+    top: 78,
+    right: 4,
+    width: 128,
+    padding: 8,
+    backgroundColor: colors.accent,
+    borderRadius: 5,
+    elevation: 5,
+  },
+  postControlBtns: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginVertical: 8,
+  },
+  controlBtnText: {
+    fontSize: 16,
+    marginLeft: 3,
+  },
+  tooltip: {
+    position: "absolute",
+    top: -21,
+    right: 3,
   },
   imageBox: {
     width: Dimensions.get("screen").width,
@@ -435,16 +485,10 @@ const styles = StyleSheet.create({
     fontSize: 18,
   },
   titleText: {
-    fontSize: 28,
+    fontSize: 26,
     color: colors.contrast,
     marginTop: 10,
     marginBottom: 8,
-    textShadowColor: colors.primary,
-    textShadowOffset: {
-      height: 1,
-      width: 0.5,
-    },
-    textShadowRadius: 1,
     width: "100%",
     textAlign: "center",
   },

@@ -68,7 +68,10 @@ const AccountScreen = ({ navigation, props }) => {
         </Text>
       </View>
 
-      <ScrollView contentContainerStyle={styles.scrollArea}>
+      <ScrollView
+        contentContainerStyle={styles.scrollArea}
+        showsVerticalScrollIndicator={false}
+      >
         <View style={styles.menuWrapper}>
           {/* my-listings */}
           <Pressable
@@ -121,7 +124,7 @@ const AccountScreen = ({ navigation, props }) => {
 
           <View style={styles.menuBox}>
             <Text style={{ fontSize: 18, marginLeft: 8, color: colors.accent }}>
-              {user.username}
+              {/* {user.username} */}
             </Text>
           </View>
 
@@ -144,7 +147,10 @@ const AccountScreen = ({ navigation, props }) => {
       {/* my-listings */}
       {currentView == "my-listings" ? (
         <View style={styles.menuOverlay}>
-          <ScrollView contentContainerStyle={styles.scrollArea}>
+          <ScrollView
+            contentContainerStyle={styles.scrollArea}
+            showsVerticalScrollIndicator={false}
+          >
             <View style={{ height: 8 }}></View>
             {myListings().length > 0 ? (
               myListings().map((item, index) => {
@@ -168,7 +174,10 @@ const AccountScreen = ({ navigation, props }) => {
       {/* watchlist */}
       {currentView == "watchlist" ? (
         <View style={styles.menuOverlay}>
-          <ScrollView contentContainerStyle={styles.scrollArea}>
+          <ScrollView
+            contentContainerStyle={styles.scrollArea}
+            showsVerticalScrollIndicator={false}
+          >
             <View style={{ height: 8 }}></View>
             {myWatchlist().length > 0 ? (
               myWatchlist().map((item, index) => {

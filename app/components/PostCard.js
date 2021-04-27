@@ -53,6 +53,7 @@ const PostCard = (props) => {
   const auth = useSelector((state) => state.auth);
   const [callModal, setCallModal] = useState(false);
   const [loadingIcon, setLoadingIcon] = useState(false);
+  const [postControl, setPostControl] = useState(false);
 
   useEffect(() => {
     if (auth.watching == false) {
@@ -77,11 +78,14 @@ const PostCard = (props) => {
 
   return (
     <View style={styles.cardContainer}>
+      {/* image section */}
       <Pressable
         onPress={() => navigation.navigate("itemDetails", { item: data })}
       >
         <Image source={{ uri: data.images[0].image }} style={styles.imageBox} />
       </Pressable>
+
+      {/* other fields */}
       <Pressable
         onPress={() => navigation.navigate("itemDetails", { item: data })}
         style={styles.overlay}
@@ -98,61 +102,74 @@ const PostCard = (props) => {
           </View>
         </View>
       </Pressable>
-      {auth.loggedIn ? (
-        firebase.auth().currentUser.uid ==
-        data.postedBy.userId ? null : loadingIcon == true ? (
-          <LoaderView
-            style={{ ...styles.watchIcon, backgroundColor: colors.accent }}
-          >
-            <AntDesign name="loading1" size={24} color={colors.primary} />
-          </LoaderView>
-        ) : auth.user.watchList == undefined || auth.user.watchList == null ? (
-          <Pressable
-            style={styles.watchIcon}
-            disabled={callModal == true ? true : false}
-            onPress={handleAddToWatchlist}
-          >
-            <Ionicons name="eye-outline" size={24} color={colors.accent} />
-          </Pressable>
-        ) : auth.user.watchList.includes(data.id) ? (
-          <Pressable
-            disabled={callModal == true ? true : false}
-            onPress={handleRemoveFromWatchlist}
-            style={{ ...styles.watchIcon, backgroundColor: colors.accent }}
-          >
-            <Ionicons name="eye-outline" size={24} color={colors.primary} />
-          </Pressable>
-        ) : (
-          <Pressable
-            style={styles.watchIcon}
-            disabled={callModal == true ? true : false}
-            onPress={handleAddToWatchlist}
-          >
-            <Ionicons name="eye-outline" size={24} color={colors.accent} />
-          </Pressable>
-        )
-      ) : null}
 
+      {/* action buttons */}
       {auth.loggedIn ? (
         firebase.auth().currentUser.uid == data.postedBy.userId ? (
-          <Pressable
-            style={styles.callIcon}
-            onPress={() => console.log("post control")}
-          >
-            <Ionicons
-              name="ellipsis-vertical"
-              size={24}
-              color={colors.accent}
-            />
-          </Pressable>
-        ) : callModal ? null : (
-          <Pressable style={styles.callIcon} onPress={() => setCallModal(true)}>
-            <Ionicons name="call-outline" size={24} color={colors.accent} />
-          </Pressable>
+          postControl ? (
+            <Pressable
+              style={styles.callIcon}
+              onPress={() => setPostControl(false)}
+            >
+              <Ionicons name="close" size={24} color={colors.primary} />
+            </Pressable>
+          ) : (
+            <Pressable
+              style={styles.callIcon}
+              onPress={() => setPostControl(true)}
+            >
+              <Ionicons
+                name="ellipsis-vertical"
+                size={24}
+                color={colors.theme}
+              />
+            </Pressable>
+          )
+        ) : (
+          <>
+            {loadingIcon == true ? (
+              <LoaderView style={styles.watchIcon}>
+                <AntDesign name="loading1" size={24} color={colors.primary} />
+              </LoaderView>
+            ) : auth.user.watchList == undefined ||
+              auth.user.watchList == null ? (
+              <Pressable
+                style={styles.watchIcon}
+                disabled={callModal == true ? true : false}
+                onPress={handleAddToWatchlist}
+              >
+                <Ionicons name="eye" size={24} color={colors.theme} />
+              </Pressable>
+            ) : auth.user.watchList.includes(data.id) ? (
+              <Pressable
+                disabled={callModal == true ? true : false}
+                onPress={handleRemoveFromWatchlist}
+                style={styles.watchIcon}
+              >
+                <Ionicons name="eye" size={24} color={colors.primary} />
+              </Pressable>
+            ) : (
+              <Pressable
+                style={styles.watchIcon}
+                disabled={callModal == true ? true : false}
+                onPress={handleAddToWatchlist}
+              >
+                <Ionicons name="eye" size={24} color={colors.theme} />
+              </Pressable>
+            )}
+            {callModal ? null : (
+              <Pressable
+                style={styles.callIcon}
+                onPress={() => setCallModal(true)}
+              >
+                <Ionicons name="call" size={24} color={colors.theme} />
+              </Pressable>
+            )}
+          </>
         )
       ) : callModal ? null : (
         <Pressable style={styles.callIcon} onPress={() => setCallModal(true)}>
-          <Ionicons name="call-outline" size={24} color={colors.accent} />
+          <Ionicons name="call" size={24} color={colors.theme} />
         </Pressable>
       )}
 
@@ -179,6 +196,43 @@ const PostCard = (props) => {
             </View>
           </View>
         </>
+      ) : null}
+
+      {postControl ? (
+        <View style={styles.postControlPanel}>
+          <Pressable>
+            <View style={styles.postControlBtns}>
+              <Ionicons name="create-outline" size={24} color="black" />
+              <Text style={styles.controlBtnText}>Edit</Text>
+            </View>
+          </Pressable>
+          <Pressable>
+            <View style={styles.postControlBtns}>
+              <Ionicons name="trash-outline" size={24} color="tomato" />
+              <Text style={{ ...styles.controlBtnText, color: "tomato" }}>
+                Delete
+              </Text>
+            </View>
+          </Pressable>
+          <Pressable>
+            <View style={styles.postControlBtns}>
+              <Ionicons name="archive-outline" size={24} color="black" />
+              <Text style={styles.controlBtnText}>Archive</Text>
+            </View>
+          </Pressable>
+          <Pressable>
+            <View style={styles.postControlBtns}>
+              <Ionicons name="checkmark-done-outline" size={24} color="black" />
+              <Text style={styles.controlBtnText}>Mark as sold</Text>
+            </View>
+          </Pressable>
+          <Ionicons
+            name="caret-down"
+            size={30}
+            color={colors.accent}
+            style={styles.tooltip}
+          />
+        </View>
       ) : null}
     </View>
   );
@@ -222,20 +276,18 @@ const styles = StyleSheet.create({
     color: colors.theme,
   },
   callIcon: {
-    backgroundColor: colors.theme,
+    backgroundColor: colors.accent,
     position: "absolute",
     bottom: 8,
     right: 8,
     padding: 5,
-    borderRadius: 10,
   },
   watchIcon: {
-    backgroundColor: colors.theme,
+    backgroundColor: colors.accent,
     position: "absolute",
     bottom: 8,
     right: 50,
     padding: 5,
-    borderRadius: 10,
   },
   modalBG: {
     width: Dimensions.get("window").width * 0.9 - 16,
@@ -277,6 +329,36 @@ const styles = StyleSheet.create({
     textAlign: "center",
     borderRadius: 25,
     backgroundColor: colors.accent,
+  },
+  postControlPanel: {
+    position: "absolute",
+    bottom: 55,
+    right: -10,
+    width: 128,
+    padding: 8,
+    backgroundColor: colors.accent,
+    borderRadius: 5,
+    elevation: 5,
+  },
+  postControlBtns: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginVertical: 8,
+  },
+  controlBtnText: {
+    fontSize: 16,
+    marginLeft: 3,
+  },
+  tooltip: {
+    position: "absolute",
+    bottom: -21,
+    right: 21,
+    textShadowColor: "#DDD",
+    textShadowOffset: {
+      height: 2,
+      width: 0,
+    },
+    textShadowRadius: 1,
   },
 });
 

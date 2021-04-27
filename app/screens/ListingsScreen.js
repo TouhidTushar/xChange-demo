@@ -48,7 +48,7 @@ const ListingScreen = ({ navigation, props }) => {
   const dispatch = useDispatch();
   const [isFetching, setIsFetching] = useState(false);
   const [filterModal, setFilterModal] = useState(false);
-  const [filterArray, setFilterArray] = useState(posts);
+  const [filterArray, setFilterArray] = useState([]);
   const [catArray, setCatArray] = useState([]);
   const [locArray, setLocArray] = useState([]);
   const [focused, setFocused] = useState(0);
@@ -57,6 +57,7 @@ const ListingScreen = ({ navigation, props }) => {
   const [priceError, setPriceError] = useState("");
   const [validRange, setValidRange] = useState(false);
   const [checkToggle, setCheckToggle] = useState(false);
+  const [filterFlag, setFilterFlag] = useState(false);
   const priceRange = { from: priceFrom, to: priceTo };
 
   const handleReload = () => {
@@ -159,6 +160,7 @@ const ListingScreen = ({ navigation, props }) => {
       myArrayThree = posts;
     }
     setFilterArray(myArrayThree);
+    setFilterFlag(true);
     setFilterModal(false);
   };
 
@@ -168,7 +170,8 @@ const ListingScreen = ({ navigation, props }) => {
     setPriceFrom(0);
     setPriceTo(0);
     setCheckToggle(!checkToggle);
-    setFilterArray(posts);
+    setFilterArray([]);
+    setFilterFlag(false);
     setFilterModal(false);
   };
 
@@ -192,6 +195,8 @@ const ListingScreen = ({ navigation, props }) => {
           </Pressable>
         )}
       </SlideInView>
+
+      {/* filtered flatlist */}
       {filterArray.length > 0 ? (
         <>
           <View
@@ -205,6 +210,7 @@ const ListingScreen = ({ navigation, props }) => {
             keyExtractor={(item) => item.id}
             refreshing={isFetching}
             onRefresh={handleReload}
+            showsVerticalScrollIndicator={false}
             contentContainerStyle={{
               width: Dimensions.get("window").width,
               alignItems: "center",
@@ -218,15 +224,54 @@ const ListingScreen = ({ navigation, props }) => {
             }}
           ></View>
         </>
-      ) : (
+      ) : filterFlag ? (
         <Text style={{ marginTop: 80, fontSize: 18 }}>
           Sorry! No matching items.
         </Text>
+      ) : (
+        <>
+          <View
+            style={{
+              height: 75,
+            }}
+          ></View>
+          <FlatList
+            data={posts}
+            renderItem={({ item }) => <PostCard post={item} nav={navigation} />}
+            keyExtractor={(item) => item.id}
+            refreshing={isFetching}
+            onRefresh={handleReload}
+            showsVerticalScrollIndicator={false}
+            contentContainerStyle={{
+              width: Dimensions.get("window").width,
+              alignItems: "center",
+              paddingTop: 10,
+              paddingBottom: 45,
+            }}
+          />
+          <View
+            style={{
+              height: 55,
+            }}
+          ></View>
+        </>
       )}
 
       {filterModal ? (
-        <ScrollView style={styles.filterWrapper}>
+        <ScrollView
+          style={styles.filterWrapper}
+          showsVerticalScrollIndicator={false}
+        >
           <View style={{ height: 10 }}></View>
+
+          <View style={styles.filterCaption}>
+            <Ionicons name="funnel" size={22} color={colors.primary} />
+            <Text
+              style={{ fontSize: 20, marginLeft: 5, color: colors.primary }}
+            >
+              Filter listings
+            </Text>
+          </View>
 
           {/* categories */}
           <View style={styles.filterBox}>
@@ -345,7 +390,7 @@ const ListingScreen = ({ navigation, props }) => {
               />
             </View>
           </View>
-          <View style={{ height: 10 }}></View>
+          <View style={{ height: 20 }}></View>
         </ScrollView>
       ) : null}
 
@@ -387,7 +432,7 @@ const styles = StyleSheet.create({
   },
   filterWrapper: {
     width: Dimensions.get("screen").width,
-    height: 350,
+    height: 360,
     backgroundColor: colors.accent,
     position: "absolute",
     top: 75,
@@ -396,6 +441,12 @@ const styles = StyleSheet.create({
     borderBottomLeftRadius: 10,
     borderBottomRightRadius: 10,
     paddingHorizontal: 10,
+  },
+  filterCaption: {
+    flexDirection: "row",
+    alignItems: "center",
+    color: colors.accent,
+    marginBottom: 20,
   },
   filterBtnContainer: {
     position: "absolute",

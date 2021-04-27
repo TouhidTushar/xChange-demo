@@ -306,7 +306,10 @@ const PostingScreen = ({ navigation, props }) => {
       </View>
 
       {/* scrollable input area */}
-      <ScrollView contentContainerStyle={styles.scrollArea}>
+      <ScrollView
+        contentContainerStyle={styles.scrollArea}
+        showsVerticalScrollIndicator={false}
+      >
         <Text style={styles.title}>Post an item for listing</Text>
 
         {/* itemname input */}
@@ -324,7 +327,7 @@ const PostingScreen = ({ navigation, props }) => {
             placeholder="item name"
             autoCapitalize="none"
             autoCorrect={false}
-            maxLength={20}
+            maxLength={30}
             onFocus={() => {
               setFocused(1);
               setCatDrop(false);
@@ -382,7 +385,10 @@ const PostingScreen = ({ navigation, props }) => {
         </Pressable>
 
         {catDrop ? (
-          <ScrollView style={styles.selectWrapper}>
+          <ScrollView
+            style={styles.selectWrapper}
+            showsVerticalScrollIndicator={false}
+          >
             {categories.map((item, index) => {
               return (
                 <Pressable
@@ -465,7 +471,10 @@ const PostingScreen = ({ navigation, props }) => {
         </Pressable>
 
         {locDrop ? (
-          <ScrollView style={styles.selectWrapper}>
+          <ScrollView
+            style={styles.selectWrapper}
+            showsVerticalScrollIndicator={false}
+          >
             {locations.map((item, index) => {
               return (
                 <Pressable
