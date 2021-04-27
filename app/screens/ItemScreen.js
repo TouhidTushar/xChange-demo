@@ -8,6 +8,7 @@ import {
   Dimensions,
   Image,
   Easing,
+  Linking,
 } from "react-native";
 import colors from "../colors";
 import { Ionicons, MaterialIcons, AntDesign } from "@expo/vector-icons";
@@ -55,6 +56,7 @@ const ItemScreen = ({ route, navigation, props }) => {
   const [imgActive, setImgActive] = useState(0);
   const [postControl, setPostControl] = useState(false);
   const [loadingIcon, setLoadingIcon] = useState(false);
+  const [callOptions, setCallOptions] = useState(false);
 
   useEffect(() => {
     if (auth.watching == false) {
@@ -108,7 +110,8 @@ const ItemScreen = ({ route, navigation, props }) => {
   };
 
   const handleCall = () => {
-    console.log("call");
+    Linking.openURL(`tel:${item.postedBy.contact}`);
+    setCallOptions(false);
   };
 
   return (
@@ -265,22 +268,76 @@ const ItemScreen = ({ route, navigation, props }) => {
               </Pressable>
 
               <Pressable
-                onPress={handleCall}
+                onPress={() => setCallOptions(true)}
                 style={{
                   ...styles.actionIcons,
-                  backgroundColor: colors.accent,
+                  backgroundColor: callOptions ? colors.theme : colors.accent,
                 }}
               >
-                <Ionicons name="call-outline" size={28} color={colors.theme} />
-                <Text style={{ ...styles.iconText, color: colors.theme }}>
+                <Ionicons
+                  name="call-outline"
+                  size={28}
+                  color={callOptions ? colors.accent : colors.theme}
+                />
+                <Text
+                  style={{
+                    ...styles.iconText,
+                    color: callOptions ? colors.accent : colors.theme,
+                  }}
+                >
                   contact seller
                 </Text>
               </Pressable>
             </View>
           )
         ) : (
-          <View style={styles.itemActionBox}></View>
+          <View style={styles.itemActionBox}>
+            <Pressable
+              onPress={() => setCallOptions(true)}
+              style={{
+                ...styles.actionIcons,
+                backgroundColor: callOptions ? colors.theme : colors.accent,
+              }}
+            >
+              <Ionicons
+                name="call-outline"
+                size={28}
+                color={callOptions ? colors.accent : colors.theme}
+              />
+              <Text
+                style={{
+                  ...styles.iconText,
+                  color: callOptions ? colors.accent : colors.theme,
+                }}
+              >
+                contact seller
+              </Text>
+            </Pressable>
+          </View>
         )}
+
+        {callOptions ? (
+          <View style={styles.callOptionsBox}>
+            <Text style={styles.callText}>
+              Do you want to call {item.postedBy.contact} for this item?
+            </Text>
+
+            <View style={styles.callBtns}>
+              <Pressable onPress={handleCall}>
+                <Text style={{ ...styles.btnText, color: colors.theme }}>
+                  Yes
+                </Text>
+              </Pressable>
+              <Pressable
+                onPress={() => {
+                  setCallOptions(false);
+                }}
+              >
+                <Text style={{ ...styles.btnText, color: "tomato" }}>No</Text>
+              </Pressable>
+            </View>
+          </View>
+        ) : null}
 
         <View style={styles.fieldsContainer}>
           <View style={styles.fields}>
@@ -414,6 +471,35 @@ const styles = StyleSheet.create({
   },
   iconText: {
     fontSize: 16,
+  },
+  callOptionsBox: {
+    width: "92%",
+    backgroundColor: colors.accent,
+    paddingHorizontal: 10,
+    paddingVertical: 25,
+    elevation: 3,
+    borderRadius: 10,
+    marginTop: 30,
+  },
+  callText: {
+    textAlign: "center",
+    fontSize: 16,
+    marginBottom: 15,
+  },
+  callBtns: {
+    flexDirection: "row",
+    alignSelf: "center",
+  },
+  btnText: {
+    fontSize: 18,
+    width: 50,
+    height: 50,
+    borderRadius: 25,
+    textAlign: "center",
+    textAlignVertical: "center",
+    marginHorizontal: 25,
+    elevation: 5,
+    backgroundColor: colors.accent,
   },
   fieldsContainer: {
     width: "92%",

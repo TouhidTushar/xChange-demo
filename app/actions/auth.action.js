@@ -262,7 +262,8 @@ export const removeFromWatch = (data) => {
         if (snapshot) {
           if (snapshot.data().watchList.length > 0) {
             watchArray = snapshot.data().watchList;
-            watchArray.pop(data);
+            var index = watchArray.indexOf(data);
+            watchArray.splice(index, 1);
             firebase
               .firestore()
               .collection("users")

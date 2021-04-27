@@ -8,6 +8,7 @@ import {
   Dimensions,
   Easing,
   Animated,
+  Linking,
 } from "react-native";
 import { Ionicons, AntDesign } from "@expo/vector-icons";
 import colors from "../colors";
@@ -67,6 +68,11 @@ const PostCard = (props) => {
   const handleRemoveFromWatchlist = () => {
     dispatch(removeFromWatch(data.id));
     setLoadingIcon(true);
+  };
+
+  const handleCall = () => {
+    Linking.openURL(`tel:${data.postedBy.contact}`);
+    setCallModal(false);
   };
 
   return (
@@ -158,11 +164,7 @@ const PostCard = (props) => {
               Do you want to call {data.postedBy.contact} for this item?
             </Text>
             <View style={styles.modalBtns}>
-              <Pressable
-              // onPress={() => {
-              //   setCallModal(false);
-              // }}
-              >
+              <Pressable onPress={handleCall}>
                 <Text style={{ ...styles.btnText, color: colors.theme }}>
                   Yes
                 </Text>
@@ -261,18 +263,19 @@ const styles = StyleSheet.create({
     color: colors.accent,
   },
   modalBtns: {
-    marginTop: 20,
+    marginTop: 25,
     flexDirection: "row",
-    width: 180,
+    width: 150,
     justifyContent: "space-between",
     alignItems: "center",
   },
   btnText: {
     fontSize: 18,
-    width: 70,
+    width: 50,
+    height: 50,
+    textAlignVertical: "center",
     textAlign: "center",
-    borderRadius: 5,
-    paddingVertical: 8,
+    borderRadius: 25,
     backgroundColor: colors.accent,
   },
 });

@@ -1,7 +1,7 @@
 import React, { useRef, useEffect, useState } from "react";
 import { StyleSheet, Text, View, Pressable, Dimensions } from "react-native";
 import { useDispatch, useSelector } from "react-redux";
-import { logOut } from "../actions";
+import { logOut, removeFromWatch } from "../actions";
 import colors from "../colors";
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import NavigationTab from "../components/NavigationTab";
@@ -165,6 +165,7 @@ const AccountScreen = ({ navigation, props }) => {
         </View>
       ) : null}
 
+      {/* watchlist */}
       {currentView == "watchlist" ? (
         <View style={styles.menuOverlay}>
           <ScrollView contentContainerStyle={styles.scrollArea}>
@@ -175,8 +176,8 @@ const AccountScreen = ({ navigation, props }) => {
                   <MiniCard
                     key={item.id}
                     data={item}
-                    serial={index}
                     nav={navigation}
+                    removeButton={true}
                   />
                 );
               })
