@@ -13,6 +13,7 @@ const AccountScreen = ({ navigation, props }) => {
   const dispatch = useDispatch();
   const [currentView, setCurrentView] = useState("");
   const posts = useSelector((state) => state.post.posts);
+  const altPosts = useSelector((state) => state.post.altPosts);
   const user = useSelector((state) => state.auth.user);
 
   const handleLogout = () => {
@@ -34,6 +35,18 @@ const AccountScreen = ({ navigation, props }) => {
     posts.map((item) => {
       if (user.watchList != undefined || user.watchList != null) {
         if (user.watchList.includes(item.id)) {
+          myArray.push(item);
+        }
+      }
+    });
+    return myArray;
+  };
+
+  const myArchives = () => {
+    var myArray = [];
+    altPosts.map((item) => {
+      if (user.archiveList != undefined || user.archiveList != null) {
+        if (user.archiveList.includes(item.id)) {
           myArray.push(item);
         }
       }
@@ -95,6 +108,7 @@ const AccountScreen = ({ navigation, props }) => {
             <Text style={styles.menuText}>inbox</Text>
           </Pressable>
 
+          {/* my-watchlist */}
           <Pressable
             style={styles.menuBox}
             onPress={() => setCurrentView("watchlist")}
@@ -117,7 +131,11 @@ const AccountScreen = ({ navigation, props }) => {
             <Text style={styles.menuText}>history</Text>
           </Pressable>
 
-          <Pressable style={styles.menuBox}>
+          {/* my-archives */}
+          <Pressable
+            style={styles.menuBox}
+            onPress={() => setCurrentView("archive")}
+          >
             <Ionicons name="archive-outline" size={28} color={colors.accent} />
             <Text style={styles.menuText}>archive</Text>
           </Pressable>
@@ -153,15 +171,8 @@ const AccountScreen = ({ navigation, props }) => {
           >
             <View style={{ height: 8 }}></View>
             {myListings().length > 0 ? (
-              myListings().map((item, index) => {
-                return (
-                  <MiniCard
-                    key={item.id}
-                    data={item}
-                    serial={index}
-                    nav={navigation}
-                  />
-                );
+              myListings().map((item) => {
+                return <MiniCard key={item.id} data={item} nav={navigation} />;
               })
             ) : (
               <Text style={{ fontSize: 18 }}>No items in my listings</Text>
@@ -180,7 +191,7 @@ const AccountScreen = ({ navigation, props }) => {
           >
             <View style={{ height: 8 }}></View>
             {myWatchlist().length > 0 ? (
-              myWatchlist().map((item, index) => {
+              myWatchlist().map((item) => {
                 return (
                   <MiniCard
                     key={item.id}
@@ -192,6 +203,26 @@ const AccountScreen = ({ navigation, props }) => {
               })
             ) : (
               <Text style={{ fontSize: 18 }}>No items in watchlist</Text>
+            )}
+            <View style={{ height: 45 }}></View>
+          </ScrollView>
+        </View>
+      ) : null}
+
+      {/* archives */}
+      {currentView == "archive" ? (
+        <View style={styles.menuOverlay}>
+          <ScrollView
+            contentContainerStyle={styles.scrollArea}
+            showsVerticalScrollIndicator={false}
+          >
+            <View style={{ height: 8 }}></View>
+            {myArchives().length > 0 ? (
+              myArchives().map((item) => {
+                return <MiniCard key={item.id} data={item} nav={navigation} />;
+              })
+            ) : (
+              <Text style={{ fontSize: 18 }}>No items in archive</Text>
             )}
             <View style={{ height: 45 }}></View>
           </ScrollView>

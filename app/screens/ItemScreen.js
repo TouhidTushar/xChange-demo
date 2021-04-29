@@ -11,11 +11,16 @@ import {
   Linking,
 } from "react-native";
 import colors from "../colors";
-import { Ionicons, MaterialIcons, AntDesign } from "@expo/vector-icons";
+import {
+  Ionicons,
+  MaterialIcons,
+  AntDesign,
+  MaterialCommunityIcons,
+} from "@expo/vector-icons";
 import NavigationTab from "../components/NavigationTab";
 import { ScrollView } from "react-native-gesture-handler";
 import { useDispatch, useSelector } from "react-redux";
-import { addToWatch, removeFromWatch } from "../actions";
+import { addToWatch, deletePost, removeFromWatch } from "../actions";
 import firebase from "firebase";
 
 const LoaderView = (props) => {
@@ -50,11 +55,13 @@ const LoaderView = (props) => {
 
 const ItemScreen = ({ route, navigation, props }) => {
   const { item } = route.params;
+  const del = { id: item.id, navigation: navigation };
   const value = new Date(item.createdAt);
   const dispatch = useDispatch();
   const auth = useSelector((state) => state.auth);
   const [imgActive, setImgActive] = useState(0);
   const [postControl, setPostControl] = useState(false);
+  const [deleteModal, setDeleteModal] = useState(false);
   const [loadingIcon, setLoadingIcon] = useState(false);
   const [callOptions, setCallOptions] = useState(false);
 
@@ -138,46 +145,6 @@ const ItemScreen = ({ route, navigation, props }) => {
           ) : null
         ) : null}
         <Text style={styles.headerText}>Item details</Text>
-        {postControl ? (
-          <View style={styles.postControlPanel}>
-            <Pressable>
-              <View style={styles.postControlBtns}>
-                <Ionicons name="create-outline" size={24} color="black" />
-                <Text style={styles.controlBtnText}>Edit</Text>
-              </View>
-            </Pressable>
-            <Pressable>
-              <View style={styles.postControlBtns}>
-                <Ionicons name="trash-outline" size={24} color="tomato" />
-                <Text style={{ ...styles.controlBtnText, color: "tomato" }}>
-                  Delete
-                </Text>
-              </View>
-            </Pressable>
-            <Pressable>
-              <View style={styles.postControlBtns}>
-                <Ionicons name="archive-outline" size={24} color="black" />
-                <Text style={styles.controlBtnText}>Archive</Text>
-              </View>
-            </Pressable>
-            <Pressable>
-              <View style={styles.postControlBtns}>
-                <Ionicons
-                  name="checkmark-done-outline"
-                  size={24}
-                  color="black"
-                />
-                <Text style={styles.controlBtnText}>Mark as sold</Text>
-              </View>
-            </Pressable>
-            <Ionicons
-              name="caret-up"
-              size={30}
-              color={colors.accent}
-              style={styles.tooltip}
-            />
-          </View>
-        ) : null}
       </View>
 
       <ScrollView
@@ -416,6 +383,116 @@ const ItemScreen = ({ route, navigation, props }) => {
         <View style={{ height: 45 }}></View>
       </ScrollView>
       <View style={{ height: 55 }}></View>
+
+      {postControl ? (
+        <View style={styles.postControlPanel}>
+          <Pressable
+            onPress={() => {
+              navigation.navigate("editPost", {
+                item: { ...item, flag: "post" },
+              });
+              setPostControl(false);
+            }}
+          >
+            <View style={styles.postControlBtns}>
+              <Ionicons name="create-outline" size={24} color="black" />
+              <Text style={styles.controlBtnText}>Edit</Text>
+            </View>
+          </Pressable>
+          <Pressable
+            onPress={() => {
+              setDeleteModal(true);
+              setPostControl(false);
+            }}
+          >
+            <View style={styles.postControlBtns}>
+              <Ionicons name="trash-outline" size={24} color="tomato" />
+              <Text style={{ ...styles.controlBtnText, color: "tomato" }}>
+                Delete
+              </Text>
+            </View>
+          </Pressable>
+          {item.archived == false ? (
+            <Pressable>
+              <View style={styles.postControlBtns}>
+                <Ionicons name="archive-outline" size={24} color="black" />
+                <Text style={styles.controlBtnText}>Archive</Text>
+              </View>
+            </Pressable>
+          ) : (
+            <Pressable>
+              <View style={styles.postControlBtns}>
+                <MaterialCommunityIcons
+                  name="archive-arrow-up-outline"
+                  size={24}
+                  color="black"
+                />
+                <Text style={styles.controlBtnText}>Unarchive</Text>
+              </View>
+            </Pressable>
+          )}
+          {item.archived == false ? (
+            <Pressable>
+              <View style={styles.postControlBtns}>
+                <Ionicons
+                  name="checkmark-done-outline"
+                  size={24}
+                  color="black"
+                />
+                <Text style={styles.controlBtnText}>Mark as sold</Text>
+              </View>
+            </Pressable>
+          ) : null}
+          <Ionicons
+            name="caret-up"
+            size={30}
+            color={colors.accent}
+            style={styles.tooltip}
+          />
+        </View>
+      ) : null}
+
+      {deleteModal ? (
+        <>
+          <Pressable
+            style={styles.deleteModalWrapper}
+            onPress={() => setDeleteModal(false)}
+          ></Pressable>
+          <View style={styles.deleteModalContainer}>
+            <Text
+              style={{ fontSize: 20, marginBottom: 35, color: colors.accent }}
+            >
+              Are you sure you want to delete this post?
+            </Text>
+            <Pressable
+              style={{ marginBottom: 25 }}
+              onPress={() => {
+                dispatch(deletePost(del));
+                setDeleteModal(false);
+              }}
+            >
+              <View style={{ flexDirection: "row", alignItems: "center" }}>
+                <Ionicons name="trash-outline" size={20} color="tomato" />
+                <Text style={{ fontSize: 18, color: "tomato" }}>delete</Text>
+              </View>
+            </Pressable>
+            <Pressable
+              style={{ marginBottom: 15 }}
+              onPress={() => {
+                setDeleteModal(false);
+              }}
+            >
+              <View style={{ flexDirection: "row", alignItems: "center" }}>
+                <Ionicons name="close-outline" size={20} color={colors.theme} />
+                <Text style={{ fontSize: 18, color: colors.theme }}>
+                  cancel
+                </Text>
+              </View>
+            </Pressable>
+          </View>
+        </>
+      ) : null}
+
       <NavigationTab data={navigation} />
     </View>
   );
@@ -575,6 +652,24 @@ const styles = StyleSheet.create({
   aboutText: {
     fontSize: 18,
     marginTop: 3,
+  },
+  deleteModalWrapper: {
+    width: "100%",
+    height: "100%",
+    position: "absolute",
+    bottom: 0,
+    backgroundColor: colors.contrast,
+    opacity: 0.7,
+    elevation: 10,
+  },
+  deleteModalContainer: {
+    width: "100%",
+    position: "absolute",
+    bottom: 0,
+    backgroundColor: colors.contrast,
+    justifyContent: "space-around",
+    padding: 15,
+    elevation: 11,
   },
 });
 

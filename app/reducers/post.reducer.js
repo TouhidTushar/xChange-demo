@@ -2,6 +2,7 @@ import { postConstants } from "../actions/constants";
 
 const initState = {
   posts: [],
+  altPosts: [],
   loading: false,
   posting: false,
   result: false,
@@ -38,21 +39,42 @@ const postReducer = (state = initState, action) => {
       };
       break;
 
+    //get ? posts
+    case postConstants.GETEXTRAPOST_SUCCESS:
+      state = {
+        ...state,
+        posting: false,
+        result: true,
+        loading: false,
+        altPosts: action.posts,
+        message: "posts retrieved",
+      };
+      break;
+    case postConstants.GETEXTRAPOST_FAILURE:
+      state = {
+        ...state,
+        posting: false,
+        loading: false,
+        result: false,
+        message: action.response,
+      };
+      break;
+
     //new post
-    case postConstants.NEWPOST_REQUEST:
+    case postConstants.POST_REQUEST:
       state = {
         ...state,
         posting: true,
       };
       break;
-    case postConstants.NEWPOST_SUCCESS:
+    case postConstants.POST_SUCCESS:
       state = {
         ...state,
         result: true,
         message: "done",
       };
       break;
-    case postConstants.NEWPOST_FAILURE:
+    case postConstants.POST_FAILURE:
       state = {
         ...state,
         result: false,
@@ -60,13 +82,13 @@ const postReducer = (state = initState, action) => {
         message: action.response,
       };
       break;
-    case postConstants.NEWPOST_SHOW_RESULT:
+    case postConstants.POST_SHOW_RESULT:
       state = {
         ...state,
         render: true,
       };
       break;
-    case postConstants.NEWPOST_HIDE_RESULT:
+    case postConstants.POST_HIDE_RESULT:
       state = {
         ...state,
         render: false,

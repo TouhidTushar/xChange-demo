@@ -115,6 +115,14 @@ const authReducer = (state = initState, action) => {
         message: action.response,
       };
       break;
+
+    //archivelist
+    case authConstants.ARCHIVE_SUCCESS:
+      state = {
+        ...state,
+        user: { ...state.user, archiveList: action.archives },
+      };
+      break;
   }
   return state;
 };

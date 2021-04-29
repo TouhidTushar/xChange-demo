@@ -16,6 +16,7 @@ import AccountScreen from "./app/screens/AccountScreen";
 import RegistrationScreen from "./app/screens/RegistrationScreen";
 import LoginScreen from "./app/screens/LoginScreen";
 import ItemScreen from "./app/screens/ItemScreen";
+import EditPostScreen from "./app/screens/EditPostScreen";
 import { loggedInState } from "./app/actions/auth.action";
 import { getCategories, getLocations, getPosts } from "./app/actions";
 import { postConstants } from "./app/actions/constants";
@@ -180,7 +181,7 @@ const App = () => {
       if (loaded == true && post.render == true) {
         setPostDone(true);
         setTimeout(() => {
-          dispatch({ type: postConstants.NEWPOST_HIDE_RESULT });
+          dispatch({ type: postConstants.POST_HIDE_RESULT });
         }, 2250);
       } else {
         setPostDone(false);
@@ -246,6 +247,7 @@ const App = () => {
             <Stack.Screen name="posting" component={PostingScreen} />
             <Stack.Screen name="account" component={AccountScreen} />
             <Stack.Screen name="itemDetails" component={ItemScreen} />
+            <Stack.Screen name="editPost" component={EditPostScreen} />
           </Stack.Navigator>
         </NavigationContainer>
       </>

@@ -13,12 +13,12 @@ import {
 import colors from "../colors";
 import "react-native-get-random-values";
 import { v4 as uuidv4 } from "uuid";
-import { newPost } from "../actions";
 import { Ionicons } from "@expo/vector-icons";
 import * as ImagePicker from "expo-image-picker";
 import { useDispatch, useSelector } from "react-redux";
 import NavigationTab from "../components/NavigationTab";
 import { ScrollView } from "react-native-gesture-handler";
+import { updatePost } from "../actions";
 
 //animation 1
 const SlideView = (props) => {
@@ -70,7 +70,8 @@ const DelayedView = (props) => {
   );
 };
 
-const PostingScreen = ({ navigation, props }) => {
+const EditPostScreen = ({ route, navigation, props }) => {
+  const { item } = route.params;
   const dispatch = useDispatch();
   const categories = useSelector((state) => state.general.categories);
   const locations = useSelector((state) => state.general.locations);
@@ -81,6 +82,8 @@ const PostingScreen = ({ navigation, props }) => {
   const [description, setDescription] = useState("");
   const [location, setLocation] = useState("--set item location--");
   const [images, setImages] = useState([]);
+  const [tempImages, setTempImages] = useState([]);
+  const [oldImages, setOldImages] = useState([]);
   const [itemNameError, setItemNameError] = useState("");
   const [categoryError, setCategoryError] = useState("");
   const [priceError, setPriceError] = useState("");
@@ -99,9 +102,26 @@ const PostingScreen = ({ navigation, props }) => {
     price,
     description,
     location,
-    images,
     navigation,
   };
+
+  useEffect(() => {
+    var tempArray = [];
+    var oldArray = [];
+    setItemName(item.itemName);
+    setCategory(item.category);
+    setDescription(item.description);
+    setLocation(item.location);
+    setPrice(item.price);
+    setImages(item.images);
+    setImageCount(item.images.length);
+    item.images.map((img) => {
+      tempArray.push(img);
+      oldArray.push(img);
+    });
+    setTempImages(tempArray);
+    setOldImages(oldArray);
+  }, []);
 
   //back button handler
   useEffect(() => {
@@ -111,7 +131,7 @@ const PostingScreen = ({ navigation, props }) => {
       price === 0 &&
       description === "" &&
       location === "--set item location--" &&
-      images.length == 0
+      imageCount == 0
     ) {
       BackHandler.removeEventListener(
         "hardwareBackPress",
@@ -132,16 +152,17 @@ const PostingScreen = ({ navigation, props }) => {
     return true;
   };
 
-  const handlePost = () => {
+  const handleUpdate = () => {
     if (
       itemName.length >= 3 &&
       category != "--select a category--" &&
       price != 0 &&
       description != "" &&
       location != "--set item location--" &&
-      images.length > 0
+      imageCount > 0
     ) {
-      dispatch(newPost(postData));
+      var dataObj = { ...postData, tempImages, id: item.id };
+      dispatch(updatePost(dataObj));
     } else {
       if (itemName.length < 3) {
         setItemNameError("use at least 3 characters");
@@ -158,7 +179,7 @@ const PostingScreen = ({ navigation, props }) => {
       if (location == "--set item location--") {
         setLocationError("must set the location");
       }
-      if (images.length == 0) {
+      if (imageCount == 0) {
         setImageError("must select at least one image");
       }
     }
@@ -199,19 +220,19 @@ const PostingScreen = ({ navigation, props }) => {
   };
 
   const handleRemoveImage = (data) => {
-    var myArray = images;
-    myArray.map((item, index) => {
+    var tempArray = tempImages;
+    tempArray.map((item, index) => {
       if (item.image == data) {
-        myArray.splice(index, 1);
+        tempArray.splice(index, 1);
         setImageCount(imageCount - 1);
       }
     });
-    setImages(myArray);
+    setTempImages(tempArray);
   };
 
   const handleImage = async () => {
     if (imageCount < 5) {
-      let imageArray = images;
+      let imageArray = tempImages;
       let result = await ImagePicker.launchImageLibraryAsync({
         mediaTypes: ImagePicker.MediaTypeOptions.Images,
         allowsEditing: true,
@@ -226,7 +247,7 @@ const PostingScreen = ({ navigation, props }) => {
           filename: _name,
         };
         imageArray.push(imageObj);
-        setImages(imageArray);
+        setTempImages(imageArray);
         setImageCount(imageCount + 1);
         setImageError("");
       }
@@ -237,7 +258,7 @@ const PostingScreen = ({ navigation, props }) => {
 
   const handleCamera = async () => {
     if (imageCount < 5) {
-      let imageArray = images;
+      let imageArray = tempImages;
       let result = await ImagePicker.launchCameraAsync({
         mediaTypes: ImagePicker.MediaTypeOptions.Images,
         allowsEditing: true,
@@ -252,7 +273,7 @@ const PostingScreen = ({ navigation, props }) => {
           filename: _name,
         };
         imageArray.push(imageObj);
-        setImages(imageArray);
+        setTempImages(imageArray);
         setImageCount(imageCount + 1);
         setImageError("");
       }
@@ -299,13 +320,13 @@ const PostingScreen = ({ navigation, props }) => {
     }
   };
 
-  const clearState = () => {
-    setItemName("");
-    setCategory("--select a category--");
-    setDescription("");
-    setPrice(0);
-    setLocation("");
-    setImages([]);
+  const resetState = () => {
+    setItemName(item.itemName);
+    setCategory(item.category);
+    setDescription(item.description);
+    setLocation(item.location);
+    setPrice(item.price);
+    setTempImages([]);
     setImageCount(0);
   };
 
@@ -319,7 +340,7 @@ const PostingScreen = ({ navigation, props }) => {
             price == 0 &&
             description == "" &&
             location == "--set item location--" &&
-            images.length == 0
+            imageCount == 0
               ? () => navigation.goBack()
               : () => setDiscardWarning(true)
           }
@@ -327,7 +348,7 @@ const PostingScreen = ({ navigation, props }) => {
         >
           <Ionicons name="arrow-back-outline" size={24} color={colors.accent} />
         </Pressable>
-        <Text style={styles.headerText}>Create post</Text>
+        <Text style={styles.headerText}>Edit post</Text>
       </View>
 
       {/* scrollable input area */}
@@ -352,7 +373,8 @@ const PostingScreen = ({ navigation, props }) => {
             placeholder="item name"
             autoCapitalize="none"
             autoCorrect={false}
-            maxLength={30}
+            maxLength={32}
+            value={itemName}
             onFocus={() => {
               setFocused(1);
               setCatDrop(false);
@@ -441,6 +463,7 @@ const PostingScreen = ({ navigation, props }) => {
             autoCorrect={false}
             multiline={true}
             numberOfLines={4}
+            value={description}
             onFocus={() => {
               setFocused(3);
               setCatDrop(false);
@@ -530,6 +553,7 @@ const PostingScreen = ({ navigation, props }) => {
             autoCapitalize="none"
             autoCorrect={false}
             keyboardType="numeric"
+            value={price.toString()}
             onFocus={() => {
               setFocused(5);
               setCatDrop(false);
@@ -622,7 +646,7 @@ const PostingScreen = ({ navigation, props }) => {
         )}
 
         {/* selected images */}
-        {images.length > 0 ? (
+        {tempImages.length > 0 ? (
           <View
             style={{
               width: "85%",
@@ -631,7 +655,7 @@ const PostingScreen = ({ navigation, props }) => {
               marginTop: 15,
             }}
           >
-            {images.map((item, index) => (
+            {tempImages.map((item, index) => (
               <View key={index}>
                 <Image source={{ uri: item.image }} style={styles.imgBox} />
                 <Pressable
@@ -642,7 +666,7 @@ const PostingScreen = ({ navigation, props }) => {
                 </Pressable>
               </View>
             ))}
-            {images.length < 5 ? (
+            {tempImages.length < 5 ? (
               <Pressable style={styles.extraImg} onPress={handleLibPermission}>
                 <Ionicons name="add-outline" size={40} color={colors.primary} />
                 <Text>add more</Text>
@@ -652,8 +676,10 @@ const PostingScreen = ({ navigation, props }) => {
         ) : null}
 
         {/* post button */}
-        <Pressable onPress={handlePost} style={styles.postBtn}>
-          <Text style={styles.btnText}>post</Text>
+        <Pressable onPress={handleUpdate} style={styles.postBtn}>
+          <Text style={styles.btnText}>
+            {item.flag == "post" ? "update" : "post"}
+          </Text>
         </Pressable>
         <View style={{ height: 45 }}></View>
       </ScrollView>
@@ -669,7 +695,7 @@ const PostingScreen = ({ navigation, props }) => {
           price == 0 &&
           description == "" &&
           location == "--set item location--" &&
-          images.length == 0
+          imageCount == 0
             ? "posting"
             : "postingAlt"
         }
@@ -689,10 +715,10 @@ const PostingScreen = ({ navigation, props }) => {
               Do you want to discard your changes?
             </Text>
             <Pressable
-              style={{ marginBottom: 25 }}
+              style={{ marginBottom: 15 }}
               onPress={() => {
                 setDiscardWarning(false);
-                clearState();
+                resetState();
                 navigation.goBack();
               }}
             >
@@ -939,4 +965,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default PostingScreen;
+export default EditPostScreen;

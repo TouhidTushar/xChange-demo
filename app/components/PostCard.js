@@ -13,7 +13,12 @@ import {
 import { Ionicons, AntDesign } from "@expo/vector-icons";
 import colors from "../colors";
 import { useDispatch, useSelector } from "react-redux";
-import { addToWatch, removeFromWatch } from "../actions";
+import {
+  addToWatch,
+  archivePost,
+  deletePost,
+  removeFromWatch,
+} from "../actions";
 import firebase from "firebase";
 
 const LoaderView = (props) => {
@@ -49,9 +54,12 @@ const LoaderView = (props) => {
 const PostCard = (props) => {
   const data = props.post;
   const navigation = props.nav;
+  const actionData = { id: data.id, navigation: navigation };
   const dispatch = useDispatch();
   const auth = useSelector((state) => state.auth);
   const [callModal, setCallModal] = useState(false);
+  const [deleteModal, setDeleteModal] = useState(false);
+  const [archiveModal, setArchiveModal] = useState(false);
   const [loadingIcon, setLoadingIcon] = useState(false);
   const [postControl, setPostControl] = useState(false);
 
@@ -106,7 +114,7 @@ const PostCard = (props) => {
       {/* action buttons */}
       {auth.loggedIn ? (
         firebase.auth().currentUser.uid == data.postedBy.userId ? (
-          postControl ? (
+          deleteModal || archiveModal ? null : postControl ? (
             <Pressable
               style={styles.callIcon}
               onPress={() => setPostControl(false)}
@@ -198,15 +206,89 @@ const PostCard = (props) => {
         </>
       ) : null}
 
+      {deleteModal ? (
+        <>
+          <View style={styles.modalBG}></View>
+          <View style={styles.callModalWrapper}>
+            <Text style={styles.modalText}>
+              Are you sure you want to delete this post?
+            </Text>
+            <View style={styles.modalBtns}>
+              <Pressable
+                onPress={() => {
+                  dispatch(deletePost(actionData));
+                  setDeleteModal(false);
+                }}
+              >
+                <Text style={{ ...styles.btnText, color: "tomato" }}>Yes</Text>
+              </Pressable>
+              <Pressable
+                onPress={() => {
+                  setDeleteModal(false);
+                }}
+              >
+                <Text style={{ ...styles.btnText, color: colors.theme }}>
+                  No
+                </Text>
+              </Pressable>
+            </View>
+          </View>
+        </>
+      ) : null}
+
+      {archiveModal ? (
+        <>
+          <View style={styles.modalBG}></View>
+          <View style={styles.callModalWrapper}>
+            <Text style={styles.modalText}>
+              Archived posts will not be visible on the listings page. You can
+              find archived posts in your account options. Do you want to
+              archive this post?
+            </Text>
+            <View style={styles.modalBtns}>
+              <Pressable
+                onPress={() => {
+                  dispatch(archivePost(actionData));
+                  setArchiveModal(false);
+                }}
+              >
+                <Text style={{ ...styles.btnText, color: "tomato" }}>Yes</Text>
+              </Pressable>
+              <Pressable
+                onPress={() => {
+                  setArchiveModal(false);
+                }}
+              >
+                <Text style={{ ...styles.btnText, color: colors.theme }}>
+                  No
+                </Text>
+              </Pressable>
+            </View>
+          </View>
+        </>
+      ) : null}
+
       {postControl ? (
         <View style={styles.postControlPanel}>
-          <Pressable>
+          <Pressable
+            onPress={() => {
+              navigation.navigate("editPost", {
+                item: { ...data, flag: "post" },
+              });
+              setPostControl(false);
+            }}
+          >
             <View style={styles.postControlBtns}>
               <Ionicons name="create-outline" size={24} color="black" />
               <Text style={styles.controlBtnText}>Edit</Text>
             </View>
           </Pressable>
-          <Pressable>
+          <Pressable
+            onPress={() => {
+              setDeleteModal(true);
+              setPostControl(false);
+            }}
+          >
             <View style={styles.postControlBtns}>
               <Ionicons name="trash-outline" size={24} color="tomato" />
               <Text style={{ ...styles.controlBtnText, color: "tomato" }}>
@@ -214,7 +296,12 @@ const PostCard = (props) => {
               </Text>
             </View>
           </Pressable>
-          <Pressable>
+          <Pressable
+            onPress={() => {
+              setArchiveModal(true);
+              setPostControl(false);
+            }}
+          >
             <View style={styles.postControlBtns}>
               <Ionicons name="archive-outline" size={24} color="black" />
               <Text style={styles.controlBtnText}>Archive</Text>
