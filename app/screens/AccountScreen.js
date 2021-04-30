@@ -219,7 +219,14 @@ const AccountScreen = ({ navigation, props }) => {
             <View style={{ height: 8 }}></View>
             {myArchives().length > 0 ? (
               myArchives().map((item) => {
-                return <MiniCard key={item.id} data={item} nav={navigation} />;
+                return (
+                  <MiniCard
+                    key={item.id}
+                    data={item}
+                    nav={navigation}
+                    unarchiveButton={true}
+                  />
+                );
               })
             ) : (
               <Text style={{ fontSize: 18 }}>No items in archive</Text>

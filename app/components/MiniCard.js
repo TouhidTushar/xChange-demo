@@ -9,7 +9,7 @@ import {
   Easing,
 } from "react-native";
 import { useDispatch, useSelector } from "react-redux";
-import { removeFromWatch } from "../actions";
+import { removeFromWatch, unarchivePost } from "../actions";
 import { AntDesign } from "@expo/vector-icons";
 import colors from "../colors";
 
@@ -46,6 +46,7 @@ const LoaderView = (props) => {
 const MiniCard = (props) => {
   const data = props.data;
   const navigation = props.nav;
+  const actionData = { id: data.id, navigation: navigation };
   const dispatch = useDispatch();
   const value = new Date(data.createdAt);
   const auth = useSelector((state) => state.auth);
@@ -73,6 +74,11 @@ const MiniCard = (props) => {
 
   const handleRemoveFromWatchlist = () => {
     dispatch(removeFromWatch(data.id));
+    setLoadingIcon(true);
+  };
+
+  const handleRemoveFromArchive = () => {
+    dispatch(unarchivePost(actionData));
     setLoadingIcon(true);
   };
 
@@ -105,6 +111,11 @@ const MiniCard = (props) => {
             <Text style={styles.btnText}>Remove</Text>
           </Pressable>
         )
+      ) : null}
+      {props.unarchiveButton ? (
+        <Pressable style={styles.rmvBtn} onPress={handleRemoveFromArchive}>
+          <Text style={styles.btnText}>Unarchive</Text>
+        </Pressable>
       ) : null}
     </View>
   );

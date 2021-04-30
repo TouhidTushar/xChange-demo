@@ -529,6 +529,7 @@ export const archivePost = (data) => {
                       archives: archiveArray,
                     });
                     dispatch(getPosts());
+                    data.navigation.navigate("listings");
                   })
                   .catch((error) => {
                     console.log(error);
@@ -552,6 +553,7 @@ export const archivePost = (data) => {
                       archives: archiveArray,
                     });
                     dispatch(getPosts());
+                    data.navigation.navigate("listings");
                   })
                   .catch((error) => {
                     console.log(error);
@@ -561,6 +563,90 @@ export const archivePost = (data) => {
                     });
                   });
               }
+            } else {
+              dispatch({
+                type: postConstants.POST_FAILURE,
+                response: "something went wrong!",
+              });
+            }
+          })
+          .catch((error) => {
+            console.log(error);
+            dispatch({
+              type: postConstants.POST_FAILURE,
+              response: error.message,
+            });
+          });
+      })
+      .catch((error) => {
+        console.log(error);
+        dispatch({
+          type: postConstants.POST_FAILURE,
+          response: error.message,
+        });
+      });
+  };
+};
+
+//unarchiving post
+export const unarchivePost = (data) => {
+  return async (dispatch) => {
+    dispatch({ type: postConstants.POST_REQUEST });
+    var archiveArray = [];
+
+    //unarchiving post doc
+    firebase
+      .firestore()
+      .collection("listings")
+      .doc(data.id)
+      .update({
+        archived: false,
+      })
+      .then(() => {
+        firebase
+          .firestore()
+          .collection("users")
+          .doc(firebase.auth().currentUser.uid)
+          .get()
+          .then((snapshot) => {
+            if (snapshot) {
+              if (snapshot.data().archiveList) {
+                archiveArray = snapshot.data().archiveList;
+                var index = archiveArray.indexOf(data.id);
+                archiveArray.splice(index, 1);
+                firebase
+                  .firestore()
+                  .collection("users")
+                  .doc(firebase.auth().currentUser.uid)
+                  .update({
+                    archiveList: archiveArray,
+                  })
+                  .then(() => {
+                    dispatch({
+                      type: authConstants.ARCHIVE_SUCCESS,
+                      archives: archiveArray,
+                    });
+                    dispatch(getPosts());
+                    data.navigation.navigate("listings");
+                  })
+                  .catch((error) => {
+                    console.log(error);
+                    dispatch({
+                      type: postConstants.POST_FAILURE,
+                      response: error.message,
+                    });
+                  });
+              } else {
+                dispatch({
+                  type: postConstants.POST_FAILURE,
+                  response: "something went wrong!",
+                });
+              }
+            } else {
+              dispatch({
+                type: postConstants.POST_FAILURE,
+                response: "something went wrong!",
+              });
             }
           })
           .catch((error) => {

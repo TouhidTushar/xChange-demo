@@ -20,7 +20,13 @@ import {
 import NavigationTab from "../components/NavigationTab";
 import { ScrollView } from "react-native-gesture-handler";
 import { useDispatch, useSelector } from "react-redux";
-import { addToWatch, deletePost, removeFromWatch } from "../actions";
+import {
+  addToWatch,
+  archivePost,
+  deletePost,
+  removeFromWatch,
+  unarchivePost,
+} from "../actions";
 import firebase from "firebase";
 
 const LoaderView = (props) => {
@@ -55,13 +61,14 @@ const LoaderView = (props) => {
 
 const ItemScreen = ({ route, navigation, props }) => {
   const { item } = route.params;
-  const del = { id: item.id, navigation: navigation };
+  const actionData = { id: item.id, navigation: navigation };
   const value = new Date(item.createdAt);
   const dispatch = useDispatch();
   const auth = useSelector((state) => state.auth);
   const [imgActive, setImgActive] = useState(0);
   const [postControl, setPostControl] = useState(false);
   const [deleteModal, setDeleteModal] = useState(false);
+  const [archiveModal, setArchiveModal] = useState(false);
   const [loadingIcon, setLoadingIcon] = useState(false);
   const [callOptions, setCallOptions] = useState(false);
 
@@ -413,14 +420,24 @@ const ItemScreen = ({ route, navigation, props }) => {
             </View>
           </Pressable>
           {item.archived == false ? (
-            <Pressable>
+            <Pressable
+              onPress={() => {
+                setArchiveModal(true);
+                setPostControl(false);
+              }}
+            >
               <View style={styles.postControlBtns}>
                 <Ionicons name="archive-outline" size={24} color="black" />
                 <Text style={styles.controlBtnText}>Archive</Text>
               </View>
             </Pressable>
           ) : (
-            <Pressable>
+            <Pressable
+              onPress={() => {
+                dispatch(unarchivePost(actionData));
+                setPostControl(false);
+              }}
+            >
               <View style={styles.postControlBtns}>
                 <MaterialCommunityIcons
                   name="archive-arrow-up-outline"
@@ -455,10 +472,10 @@ const ItemScreen = ({ route, navigation, props }) => {
       {deleteModal ? (
         <>
           <Pressable
-            style={styles.deleteModalWrapper}
+            style={styles.ModalWrapper}
             onPress={() => setDeleteModal(false)}
           ></Pressable>
-          <View style={styles.deleteModalContainer}>
+          <View style={styles.ModalContainer}>
             <Text
               style={{ fontSize: 20, marginBottom: 35, color: colors.accent }}
             >
@@ -467,7 +484,7 @@ const ItemScreen = ({ route, navigation, props }) => {
             <Pressable
               style={{ marginBottom: 25 }}
               onPress={() => {
-                dispatch(deletePost(del));
+                dispatch(deletePost(actionData));
                 setDeleteModal(false);
               }}
             >
@@ -480,6 +497,61 @@ const ItemScreen = ({ route, navigation, props }) => {
               style={{ marginBottom: 15 }}
               onPress={() => {
                 setDeleteModal(false);
+              }}
+            >
+              <View style={{ flexDirection: "row", alignItems: "center" }}>
+                <Ionicons name="close-outline" size={20} color={colors.theme} />
+                <Text style={{ fontSize: 18, color: colors.theme }}>
+                  cancel
+                </Text>
+              </View>
+            </Pressable>
+          </View>
+        </>
+      ) : null}
+
+      {archiveModal ? (
+        <>
+          <Pressable
+            style={styles.ModalWrapper}
+            onPress={() => setArchiveModal(false)}
+          ></Pressable>
+          <View style={styles.ModalContainer}>
+            <Text
+              style={{ fontSize: 20, marginBottom: 35, color: colors.accent }}
+            >
+              Archived posts will not be visible on the listings page. You can
+              find archived posts in your account options. Do you want to
+              archive this post?
+            </Text>
+            <Pressable
+              style={{ marginBottom: 25 }}
+              onPress={() => {
+                dispatch(archivePost(actionData));
+                setArchiveModal(false);
+              }}
+            >
+              <View style={{ flexDirection: "row", alignItems: "center" }}>
+                <Ionicons
+                  name="archive-outline"
+                  size={20}
+                  color={colors.secondary}
+                />
+                <Text
+                  style={{
+                    fontSize: 18,
+                    marginLeft: 3,
+                    color: colors.secondary,
+                  }}
+                >
+                  archive
+                </Text>
+              </View>
+            </Pressable>
+            <Pressable
+              style={{ marginBottom: 15 }}
+              onPress={() => {
+                setArchiveModal(false);
               }}
             >
               <View style={{ flexDirection: "row", alignItems: "center" }}>
@@ -653,7 +725,7 @@ const styles = StyleSheet.create({
     fontSize: 18,
     marginTop: 3,
   },
-  deleteModalWrapper: {
+  ModalWrapper: {
     width: "100%",
     height: "100%",
     position: "absolute",
@@ -662,7 +734,7 @@ const styles = StyleSheet.create({
     opacity: 0.7,
     elevation: 10,
   },
-  deleteModalContainer: {
+  ModalContainer: {
     width: "100%",
     position: "absolute",
     bottom: 0,

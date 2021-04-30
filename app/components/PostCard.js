@@ -184,7 +184,7 @@ const PostCard = (props) => {
       {callModal ? (
         <>
           <View style={styles.modalBG}></View>
-          <View style={styles.callModalWrapper}>
+          <View style={styles.modalWrapper}>
             <Text style={styles.modalText}>
               Do you want to call {data.postedBy.contact} for this item?
             </Text>
@@ -209,7 +209,7 @@ const PostCard = (props) => {
       {deleteModal ? (
         <>
           <View style={styles.modalBG}></View>
-          <View style={styles.callModalWrapper}>
+          <View style={styles.modalWrapper}>
             <Text style={styles.modalText}>
               Are you sure you want to delete this post?
             </Text>
@@ -239,7 +239,7 @@ const PostCard = (props) => {
       {archiveModal ? (
         <>
           <View style={styles.modalBG}></View>
-          <View style={styles.callModalWrapper}>
+          <View style={styles.modalWrapper}>
             <Text style={styles.modalText}>
               Archived posts will not be visible on the listings page. You can
               find archived posts in your account options. Do you want to
@@ -386,7 +386,7 @@ const styles = StyleSheet.create({
     top: 8,
     left: 8,
   },
-  callModalWrapper: {
+  modalWrapper: {
     width: Dimensions.get("window").width * 0.9 - 16,
     height: Dimensions.get("window").width * 0.8 * 0.75,
     borderRadius: 10,
