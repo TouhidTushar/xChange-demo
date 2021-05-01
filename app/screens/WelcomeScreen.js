@@ -1,6 +1,5 @@
-import React, { useRef, useEffect } from "react";
+import React, { useRef, useEffect, useState } from "react";
 import { Animated, StyleSheet, Text, View } from "react-native";
-import AppLoading from "expo-app-loading";
 import {
   useFonts,
   KaushanScript_400Regular,
@@ -45,13 +44,13 @@ const SlideInView = (props) => {
   useEffect(() => {
     Animated.timing(slideAnim, {
       toValue: 0,
-      delay: 1500,
+      delay: 1200,
       duration: 800,
       useNativeDriver: true,
     }).start();
     Animated.timing(fadeAnim, {
       toValue: 1,
-      delay: 1500,
+      delay: 1200,
       duration: 800,
       useNativeDriver: true,
     }).start();
@@ -70,6 +69,44 @@ const SlideInView = (props) => {
   );
 };
 
+const Bubbles = (props) => {
+  const jumpAnim = useRef(new Animated.Value(0.1)).current;
+  const [count, setCount] = useState(0);
+
+  useEffect(() => {
+    setCount(1);
+  }, []);
+
+  useEffect(() => {
+    Animated.loop(
+      Animated.sequence([
+        Animated.timing(jumpAnim, {
+          toValue: 1,
+          duration: 800,
+          delay: count == 0 ? props.delay : 0,
+          useNativeDriver: true,
+        }),
+        Animated.timing(jumpAnim, {
+          toValue: 0.1,
+          duration: 800,
+          useNativeDriver: true,
+        }),
+      ])
+    ).start();
+  }, [jumpAnim]);
+
+  return (
+    <Animated.View
+      style={{
+        ...props.style,
+        opacity: jumpAnim,
+      }}
+    >
+      {props.children}
+    </Animated.View>
+  );
+};
+
 const WelcomeScreen = ({ navigation, props }) => {
   let [fontsLoaded] = useFonts({
     KaushanScript_400Regular,
@@ -77,7 +114,16 @@ const WelcomeScreen = ({ navigation, props }) => {
   });
 
   if (!fontsLoaded) {
-    return <AppLoading />;
+    return (
+      <View style={styles.loader}>
+        <View style={styles.bubblesBox}>
+          <Bubbles style={styles.bubbles} delay={100}></Bubbles>
+          <Bubbles style={styles.bubbles} delay={200}></Bubbles>
+          <Bubbles style={styles.bubbles} delay={300}></Bubbles>
+          <Bubbles style={styles.bubbles} delay={400}></Bubbles>
+        </View>
+      </View>
+    );
   } else {
     return (
       <View style={styles.background}>
@@ -109,6 +155,28 @@ const WelcomeScreen = ({ navigation, props }) => {
 };
 
 const styles = StyleSheet.create({
+  loader: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    elevation: 10,
+    height: "100%",
+    width: "100%",
+    backgroundColor: colors.theme,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  bubblesBox: {
+    flexDirection: "row",
+    marginTop: 5,
+  },
+  bubbles: {
+    width: 10,
+    height: 10,
+    borderRadius: 5,
+    marginHorizontal: 5,
+    backgroundColor: colors.accent,
+  },
   background: {
     width: "100%",
     height: "100%",

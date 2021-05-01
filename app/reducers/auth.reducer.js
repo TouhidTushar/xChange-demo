@@ -123,6 +123,14 @@ const authReducer = (state = initState, action) => {
         user: { ...state.user, archiveList: action.archives },
       };
       break;
+
+    //soldlist
+    case authConstants.SOLD_SUCCESS:
+      state = {
+        ...state,
+        user: { ...state.user, soldList: action.soldList },
+      };
+      break;
   }
   return state;
 };

@@ -94,6 +94,7 @@ const MiniCard = (props) => {
           <Text style={styles.subText}>{prepareDate()}</Text>
         </View>
       </Pressable>
+
       {props.removeButton ? (
         loadingIcon ? (
           <LoaderView
@@ -112,10 +113,24 @@ const MiniCard = (props) => {
           </Pressable>
         )
       ) : null}
+
       {props.unarchiveButton ? (
         <Pressable style={styles.rmvBtn} onPress={handleRemoveFromArchive}>
           <Text style={styles.btnText}>Unarchive</Text>
         </Pressable>
+      ) : null}
+
+      {props.historyFlag ? (
+        <View style={styles.rmvBtn}>
+          <Text
+            style={{
+              ...styles.btnText,
+              color: props.historyFlag == "sold" ? "tomato" : colors.theme,
+            }}
+          >
+            {props.historyFlag}
+          </Text>
+        </View>
       ) : null}
     </View>
   );

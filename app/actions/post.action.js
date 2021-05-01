@@ -84,12 +84,14 @@ export const getPosts = () => {
         });
       });
     if (firebase.auth().currentUser != null) {
-      getExtraPosts(dispatch);
+      getArchivedPosts(dispatch);
+      getSoldPosts(dispatch);
     }
   };
 };
 
-const getExtraPosts = (dispatch) => {
+//getting archived posts
+const getArchivedPosts = (dispatch) => {
   var postArray = [];
   firebase
     .firestore()
@@ -133,14 +135,14 @@ const getExtraPosts = (dispatch) => {
                   count = count - 1;
                   if (count == 0) {
                     dispatch({
-                      type: postConstants.GETEXTRAPOST_SUCCESS,
+                      type: postConstants.GETARCHIVEDPOST_SUCCESS,
                       posts: postArray,
                     });
                   }
                 }
               } else {
                 dispatch({
-                  type: postConstants.GETEXTRAPOST_FAILURE,
+                  type: postConstants.GETARCHIVEDPOST_FAILURE,
                   response: "something went wrong!",
                 });
               }
@@ -148,14 +150,14 @@ const getExtraPosts = (dispatch) => {
             .catch((error) => {
               console.log(error);
               dispatch({
-                type: postConstants.GETEXTRAPOST_FAILURE,
+                type: postConstants.GETARCHIVEDPOST_FAILURE,
                 response: error.message,
               });
             });
         });
       } else {
         dispatch({
-          type: postConstants.GETEXTRAPOST_FAILURE,
+          type: postConstants.GETARCHIVEDPOST_FAILURE,
           response: "something went wrong!",
         });
       }
@@ -163,7 +165,89 @@ const getExtraPosts = (dispatch) => {
     .catch((error) => {
       console.log(error);
       dispatch({
-        type: postConstants.GETEXTRAPOST_FAILURE,
+        type: postConstants.GETARCHIVEDPOST_FAILURE,
+        response: error.message,
+      });
+    });
+};
+
+//getting sold posts
+const getSoldPosts = (dispatch) => {
+  var postArray = [];
+  firebase
+    .firestore()
+    .collection("listings")
+    .where("sold", "==", true)
+    .orderBy("createdAt", "desc")
+    .get()
+    .then((snapshot) => {
+      if (snapshot) {
+        var count = snapshot.size;
+        snapshot.forEach((doc) => {
+          firebase
+            .firestore()
+            .collection("users")
+            .doc(doc.data().postedBy)
+            .get()
+            .then((snapshot) => {
+              var user = false;
+              if (snapshot.exists) {
+                const _postUser = {
+                  userId: doc.data().postedBy,
+                  username: snapshot.data().username,
+                  contact: snapshot.data().contact,
+                };
+                user = true;
+                if (user == true) {
+                  var postObj = {
+                    id: doc.id,
+                    itemName: doc.data().itemName,
+                    category: doc.data().category,
+                    location: doc.data().location,
+                    description: doc.data().description,
+                    images: doc.data().images,
+                    price: doc.data().price,
+                    sold: doc.data().sold,
+                    archived: doc.data().archived,
+                    createdAt: doc.data().createdAt,
+                    postedBy: _postUser,
+                    soldTo: doc.data().soldTo ? doc.data().soldTo : null,
+                  };
+                  postArray.push(postObj);
+                  count = count - 1;
+                  if (count == 0) {
+                    dispatch({
+                      type: postConstants.GETSOLDPOST_SUCCESS,
+                      posts: postArray,
+                    });
+                  }
+                }
+              } else {
+                dispatch({
+                  type: postConstants.GETSOLDPOST_FAILURE,
+                  response: "something went wrong!",
+                });
+              }
+            })
+            .catch((error) => {
+              console.log(error);
+              dispatch({
+                type: postConstants.GETSOLDPOST_FAILURE,
+                response: error.message,
+              });
+            });
+        });
+      } else {
+        dispatch({
+          type: postConstants.GETSOLDPOST_FAILURE,
+          response: "something went wrong!",
+        });
+      }
+    })
+    .catch((error) => {
+      console.log(error);
+      dispatch({
+        type: postConstants.GETSOLDPOST_FAILURE,
         response: error.message,
       });
     });
@@ -664,5 +748,424 @@ export const unarchivePost = (data) => {
           response: error.message,
         });
       });
+  };
+};
+
+//mark post as sold
+export const markSold = (data) => {
+  return async (dispatch) => {
+    dispatch({ type: postConstants.POST_REQUEST });
+    var boughtArray = [];
+    var soldArray = [];
+    var bought = false;
+
+    if (data.flag == "user") {
+      //update buyers data
+      firebase
+        .firestore()
+        .collection("users")
+        .where("email", "==", data.email)
+        .get()
+        .then((snapshot) => {
+          if (snapshot) {
+            snapshot.forEach((doc) => {
+              if (doc.data().boughtList) {
+                boughtArray = doc.data().boughtList;
+                boughtArray.push(data.id);
+                firebase
+                  .firestore()
+                  .collection("users")
+                  .doc(doc.id)
+                  .update({
+                    boughtList: boughtArray,
+                  })
+                  .then(() => {
+                    bought = true;
+                    if (bought == true) {
+                      //update sellers data
+                      firebase
+                        .firestore()
+                        .collection("users")
+                        .doc(firebase.auth().currentUser.uid)
+                        .get()
+                        .then((snapshot) => {
+                          if (snapshot) {
+                            if (snapshot.data().soldList) {
+                              soldArray = snapshot.data().soldList;
+                              soldArray.push(data.id);
+                              firebase
+                                .firestore()
+                                .collection("users")
+                                .doc(firebase.auth().currentUser.uid)
+                                .update({
+                                  soldList: soldArray,
+                                })
+                                .then(() => {
+                                  //updating the post doc
+                                  firebase
+                                    .firestore()
+                                    .collection("listings")
+                                    .doc(data.id)
+                                    .update({
+                                      sold: true,
+                                      soldTo: {
+                                        email: data.email,
+                                        ref: "user",
+                                      },
+                                    })
+                                    .then(() => {
+                                      dispatch({
+                                        type: authConstants.SOLD_SUCCESS,
+                                        soldList: soldArray,
+                                      });
+                                      dispatch(getPosts());
+                                      data.navigation.navigate("listings");
+                                    })
+                                    .catch((error) => {
+                                      console.log(error);
+                                      dispatch({
+                                        type: postConstants.POST_FAILURE,
+                                        response: error.message,
+                                      });
+                                    });
+                                })
+                                .catch((error) => {
+                                  console.log(error);
+                                  dispatch({
+                                    type: postConstants.POST_FAILURE,
+                                    response: error.message,
+                                  });
+                                });
+                            } else {
+                              soldArray.push(data.id);
+                              firebase
+                                .firestore()
+                                .collection("users")
+                                .doc(firebase.auth().currentUser.uid)
+                                .update({
+                                  soldList: soldArray,
+                                })
+                                .then(() => {
+                                  //updating the post doc
+                                  firebase
+                                    .firestore()
+                                    .collection("listings")
+                                    .doc(data.id)
+                                    .update({
+                                      sold: true,
+                                      soldTo: {
+                                        email: data.email,
+                                        ref: "user",
+                                      },
+                                    })
+                                    .then(() => {
+                                      dispatch({
+                                        type: authConstants.SOLD_SUCCESS,
+                                        soldList: soldArray,
+                                      });
+                                      dispatch(getPosts());
+                                      data.navigation.navigate("listings");
+                                    })
+                                    .catch((error) => {
+                                      console.log(error);
+                                      dispatch({
+                                        type: postConstants.POST_FAILURE,
+                                        response: error.message,
+                                      });
+                                    });
+                                })
+                                .catch((error) => {
+                                  console.log(error);
+                                  dispatch({
+                                    type: postConstants.POST_FAILURE,
+                                    response: error.message,
+                                  });
+                                });
+                            }
+                          } else {
+                            dispatch({
+                              type: postConstants.POST_FAILURE,
+                              response: "something went wrong!",
+                            });
+                          }
+                        })
+                        .catch((error) => {
+                          console.log(error);
+                          dispatch({
+                            type: postConstants.POST_FAILURE,
+                            response: error.message,
+                          });
+                        });
+                    }
+                  })
+                  .catch((error) => {
+                    console.log(error);
+                    dispatch({
+                      type: postConstants.POST_FAILURE,
+                      response: error.message,
+                    });
+                  });
+              } else {
+                boughtArray.push(data.id);
+                firebase
+                  .firestore()
+                  .collection("users")
+                  .doc(doc.id)
+                  .update({
+                    boughtList: boughtArray,
+                  })
+                  .then(() => {
+                    bought = true;
+                    if (bought == true) {
+                      //update sellers data
+                      firebase
+                        .firestore()
+                        .collection("users")
+                        .doc(firebase.auth().currentUser.uid)
+                        .get()
+                        .then((snapshot) => {
+                          if (snapshot) {
+                            if (snapshot.data().soldList) {
+                              soldArray = snapshot.data().soldList;
+                              soldArray.push(data.id);
+                              firebase
+                                .firestore()
+                                .collection("users")
+                                .doc(firebase.auth().currentUser.uid)
+                                .update({
+                                  soldList: soldArray,
+                                })
+                                .then(() => {
+                                  //updating the post doc
+                                  firebase
+                                    .firestore()
+                                    .collection("listings")
+                                    .doc(data.id)
+                                    .update({
+                                      sold: true,
+                                      soldTo: {
+                                        email: data.email,
+                                        ref: "user",
+                                      },
+                                    })
+                                    .then(() => {
+                                      dispatch({
+                                        type: authConstants.SOLD_SUCCESS,
+                                        soldList: soldArray,
+                                      });
+                                      dispatch(getPosts());
+                                      data.navigation.navigate("listings");
+                                    })
+                                    .catch((error) => {
+                                      console.log(error);
+                                      dispatch({
+                                        type: postConstants.POST_FAILURE,
+                                        response: error.message,
+                                      });
+                                    });
+                                })
+                                .catch((error) => {
+                                  console.log(error);
+                                  dispatch({
+                                    type: postConstants.POST_FAILURE,
+                                    response: error.message,
+                                  });
+                                });
+                            } else {
+                              soldArray.push(data.id);
+                              firebase
+                                .firestore()
+                                .collection("users")
+                                .doc(firebase.auth().currentUser.uid)
+                                .update({
+                                  soldList: soldArray,
+                                })
+                                .then(() => {
+                                  //updating the post doc
+                                  firebase
+                                    .firestore()
+                                    .collection("listings")
+                                    .doc(data.id)
+                                    .update({
+                                      sold: true,
+                                      soldTo: {
+                                        email: data.email,
+                                        ref: "user",
+                                      },
+                                    })
+                                    .then(() => {
+                                      dispatch({
+                                        type: authConstants.SOLD_SUCCESS,
+                                        soldList: soldArray,
+                                      });
+                                      dispatch(getPosts());
+                                      data.navigation.navigate("listings");
+                                    })
+                                    .catch((error) => {
+                                      console.log(error);
+                                      dispatch({
+                                        type: postConstants.POST_FAILURE,
+                                        response: error.message,
+                                      });
+                                    });
+                                })
+                                .catch((error) => {
+                                  console.log(error);
+                                  dispatch({
+                                    type: postConstants.POST_FAILURE,
+                                    response: error.message,
+                                  });
+                                });
+                            }
+                          } else {
+                            dispatch({
+                              type: postConstants.POST_FAILURE,
+                              response: "something went wrong!",
+                            });
+                          }
+                        })
+                        .catch((error) => {
+                          console.log(error);
+                          dispatch({
+                            type: postConstants.POST_FAILURE,
+                            response: error.message,
+                          });
+                        });
+                    }
+                  })
+                  .catch((error) => {
+                    console.log(error);
+                    dispatch({
+                      type: postConstants.POST_FAILURE,
+                      response: error.message,
+                    });
+                  });
+              }
+            });
+            dispatch(getPosts());
+          } else {
+            dispatch({
+              type: postConstants.POST_FAILURE,
+              response: "something went wrong!",
+            });
+          }
+        })
+        .catch((error) => {
+          console.log(error);
+          dispatch({
+            type: postConstants.POST_FAILURE,
+            response: error.message,
+          });
+        });
+    } else {
+      //update sellers data
+      firebase
+        .firestore()
+        .collection("users")
+        .doc(firebase.auth().currentUser.uid)
+        .get()
+        .then((snapshot) => {
+          if (snapshot) {
+            if (snapshot.data().soldList) {
+              soldArray = snapshot.data().soldList;
+              soldArray.push(data.id);
+              firebase
+                .firestore()
+                .collection("users")
+                .doc(firebase.auth().currentUser.uid)
+                .update({
+                  soldList: soldArray,
+                })
+                .then(() => {
+                  //updating the post doc
+                  firebase
+                    .firestore()
+                    .collection("listings")
+                    .doc(data.id)
+                    .update({
+                      sold: true,
+                      soldTo: { contact: data.contact, ref: "guest" },
+                    })
+                    .then(() => {
+                      dispatch({
+                        type: authConstants.SOLD_SUCCESS,
+                        soldList: soldArray,
+                      });
+                      dispatch(getPosts());
+                      data.navigation.navigate("listings");
+                    })
+                    .catch((error) => {
+                      console.log(error);
+                      dispatch({
+                        type: postConstants.POST_FAILURE,
+                        response: error.message,
+                      });
+                    });
+                })
+                .catch((error) => {
+                  console.log(error);
+                  dispatch({
+                    type: postConstants.POST_FAILURE,
+                    response: error.message,
+                  });
+                });
+            } else {
+              soldArray.push(data.id);
+              firebase
+                .firestore()
+                .collection("users")
+                .doc(firebase.auth().currentUser.uid)
+                .update({
+                  soldList: soldArray,
+                })
+                .then(() => {
+                  //updating the post doc
+                  firebase
+                    .firestore()
+                    .collection("listings")
+                    .doc(data.id)
+                    .update({
+                      sold: true,
+                      soldTo: { contact: data.contact, ref: "guest" },
+                    })
+                    .then(() => {
+                      dispatch({
+                        type: authConstants.SOLD_SUCCESS,
+                        soldList: soldArray,
+                      });
+                      dispatch(getPosts());
+                      data.navigation.navigate("listings");
+                    })
+                    .catch((error) => {
+                      console.log(error);
+                      dispatch({
+                        type: postConstants.POST_FAILURE,
+                        response: error.message,
+                      });
+                    });
+                })
+                .catch((error) => {
+                  console.log(error);
+                  dispatch({
+                    type: postConstants.POST_FAILURE,
+                    response: error.message,
+                  });
+                });
+            }
+          } else {
+            dispatch({
+              type: postConstants.POST_FAILURE,
+              response: "something went wrong!",
+            });
+          }
+        })
+        .catch((error) => {
+          console.log(error);
+          dispatch({
+            type: postConstants.POST_FAILURE,
+            response: error.message,
+          });
+        });
+    }
   };
 };

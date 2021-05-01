@@ -2,7 +2,7 @@ import { postConstants } from "../actions/constants";
 
 const initState = {
   posts: [],
-  altPosts: [],
+  archivedPosts: [],
   loading: false,
   posting: false,
   result: false,
@@ -39,18 +39,39 @@ const postReducer = (state = initState, action) => {
       };
       break;
 
-    //get ? posts
-    case postConstants.GETEXTRAPOST_SUCCESS:
+    //get archived posts
+    case postConstants.GETARCHIVEDPOST_SUCCESS:
       state = {
         ...state,
         posting: false,
         result: true,
         loading: false,
-        altPosts: action.posts,
+        archivedPosts: action.posts,
         message: "posts retrieved",
       };
       break;
-    case postConstants.GETEXTRAPOST_FAILURE:
+    case postConstants.GETARCHIVEDPOST_FAILURE:
+      state = {
+        ...state,
+        posting: false,
+        loading: false,
+        result: false,
+        message: action.response,
+      };
+      break;
+
+    //get sold posts
+    case postConstants.GETSOLDPOST_SUCCESS:
+      state = {
+        ...state,
+        posting: false,
+        result: true,
+        loading: false,
+        soldPosts: action.posts,
+        message: "posts retrieved",
+      };
+      break;
+    case postConstants.GETSOLDPOST_FAILURE:
       state = {
         ...state,
         posting: false,

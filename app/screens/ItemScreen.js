@@ -9,6 +9,7 @@ import {
   Image,
   Easing,
   Linking,
+  TextInput,
 } from "react-native";
 import colors from "../colors";
 import {
@@ -26,6 +27,7 @@ import {
   deletePost,
   removeFromWatch,
   unarchivePost,
+  markSold,
 } from "../actions";
 import firebase from "firebase";
 
@@ -69,6 +71,16 @@ const ItemScreen = ({ route, navigation, props }) => {
   const [postControl, setPostControl] = useState(false);
   const [deleteModal, setDeleteModal] = useState(false);
   const [archiveModal, setArchiveModal] = useState(false);
+  const [soldModalOne, setSoldModalOne] = useState(false);
+  const [soldModalTwo, setSoldModalTwo] = useState(false);
+  const [soldModalThree, setSoldModalThree] = useState(false);
+  const [focused, setFocused] = useState(false);
+  const [email, setEmail] = useState("");
+  const [emailError, setEmailError] = useState("");
+  const [validEmail, setValidEmail] = useState(false);
+  const [contact, setContact] = useState("");
+  const [contactError, setContactError] = useState("");
+  const [validContact, setValidContact] = useState(false);
   const [loadingIcon, setLoadingIcon] = useState(false);
   const [callOptions, setCallOptions] = useState(false);
 
@@ -128,6 +140,66 @@ const ItemScreen = ({ route, navigation, props }) => {
     setCallOptions(false);
   };
 
+  const validateEmail = (text) => {
+    let reg = /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/;
+    if (reg.test(text) === false) {
+      setValidEmail(false);
+      setEmailError("please enter a valid email");
+    } else {
+      setValidEmail(true);
+    }
+  };
+
+  const validateContact = (text) => {
+    let reg = /^(?:\+?88|0088)?01[15-9]\d{8}$/;
+    if (reg.test(text) === false) {
+      setValidContact(false);
+      setContactError("please enter a valid phone number");
+    } else {
+      setValidContact(true);
+    }
+  };
+
+  const handleSoldToUser = () => {
+    const warning = "this field is required!";
+    if (email != "" && validEmail == true && email != auth.user.email) {
+      var soldData = { ...actionData, flag: "user", email: email };
+      dispatch(markSold(soldData));
+      setSoldModalTwo(false);
+      setEmail("");
+    } else {
+      if (validEmail == false) {
+        if (email === "") {
+          setEmailError(warning);
+        } else {
+          setEmailError("please enter a valid email");
+        }
+      }
+      if (email == auth.user.email) {
+        setEmailError("buyer's email can not be same as your email");
+      }
+    }
+  };
+
+  const handleSoldToGuest = () => {
+    const warning = "this field is required!";
+    if (contact != "" && validContact == true && contact != auth.user.contact) {
+      var soldData = { ...actionData, flag: "guest", contact: contact };
+      dispatch(markSold(soldData));
+    } else {
+      if (validContact == false) {
+        if (contact === "") {
+          setContactError(warning);
+        } else {
+          setContactError("please enter a valid phone number");
+        }
+      }
+      if (contact == auth.user.contact) {
+        setContactError("buyer's contact can not be same as your contact");
+      }
+    }
+  };
+
   return (
     <View style={styles.wrapper}>
       <View style={styles.header}>
@@ -137,18 +209,20 @@ const ItemScreen = ({ route, navigation, props }) => {
         >
           <Ionicons name="arrow-back-outline" size={24} color={colors.accent} />
         </Pressable>
-        {auth.loggedIn ? (
-          firebase.auth().currentUser.uid == item.postedBy.userId ? (
-            <Pressable
-              onPress={handlePostControl}
-              style={{ position: "absolute", right: 10, bottom: 8 }}
-            >
-              <Ionicons
-                name={postControl ? "close" : "ellipsis-vertical"}
-                size={24}
-                color={colors.accent}
-              />
-            </Pressable>
+        {item.sold == false ? (
+          auth.loggedIn ? (
+            firebase.auth().currentUser.uid == item.postedBy.userId ? (
+              <Pressable
+                onPress={handlePostControl}
+                style={{ position: "absolute", right: 10, bottom: 8 }}
+              >
+                <Ionicons
+                  name={postControl ? "close" : "ellipsis-vertical"}
+                  size={24}
+                  color={colors.accent}
+                />
+              </Pressable>
+            ) : null
           ) : null
         ) : null}
         <Text style={styles.headerText}>Item details</Text>
@@ -199,7 +273,8 @@ const ItemScreen = ({ route, navigation, props }) => {
         </View>
 
         {auth.loggedIn ? (
-          firebase.auth().currentUser.uid == item.postedBy.userId ? null : (
+          firebase.auth().currentUser.uid ==
+          item.postedBy.userId ? null : item.sold == true ? null : (
             <View style={styles.itemActionBox}>
               {loadingIcon == true ? (
                 <LoaderView
@@ -327,7 +402,7 @@ const ItemScreen = ({ route, navigation, props }) => {
 
         {callOptions ? (
           <View style={styles.callOptionsBox}>
-            <Text style={styles.callText}>
+            <Text style={styles.callText} selectable>
               Do you want to call {item.postedBy.contact} for this item?
             </Text>
 
@@ -391,83 +466,115 @@ const ItemScreen = ({ route, navigation, props }) => {
       </ScrollView>
       <View style={{ height: 55 }}></View>
 
-      {postControl ? (
-        <View style={styles.postControlPanel}>
-          <Pressable
-            onPress={() => {
-              navigation.navigate("editPost", {
-                item: { ...item, flag: "post" },
-              });
-              setPostControl(false);
-            }}
-          >
-            <View style={styles.postControlBtns}>
-              <Ionicons name="create-outline" size={24} color="black" />
-              <Text style={styles.controlBtnText}>Edit</Text>
-            </View>
-          </Pressable>
-          <Pressable
-            onPress={() => {
-              setDeleteModal(true);
-              setPostControl(false);
-            }}
-          >
-            <View style={styles.postControlBtns}>
-              <Ionicons name="trash-outline" size={24} color="tomato" />
-              <Text style={{ ...styles.controlBtnText, color: "tomato" }}>
-                Delete
-              </Text>
-            </View>
-          </Pressable>
-          {item.archived == false ? (
+      {item.sold == false ? (
+        postControl ? (
+          <View style={styles.postControlPanel}>
             <Pressable
               onPress={() => {
-                setArchiveModal(true);
+                navigation.navigate("editPost", {
+                  item: { ...item, flag: "post" },
+                });
                 setPostControl(false);
               }}
             >
               <View style={styles.postControlBtns}>
-                <Ionicons name="archive-outline" size={24} color="black" />
-                <Text style={styles.controlBtnText}>Archive</Text>
+                <Ionicons name="create-outline" size={24} color="black" />
+                <Text style={styles.controlBtnText}>Edit</Text>
               </View>
             </Pressable>
-          ) : (
             <Pressable
               onPress={() => {
-                dispatch(unarchivePost(actionData));
+                setDeleteModal(true);
                 setPostControl(false);
               }}
             >
               <View style={styles.postControlBtns}>
-                <MaterialCommunityIcons
-                  name="archive-arrow-up-outline"
-                  size={24}
-                  color="black"
-                />
-                <Text style={styles.controlBtnText}>Unarchive</Text>
+                <Ionicons name="trash-outline" size={24} color="tomato" />
+                <Text style={{ ...styles.controlBtnText, color: "tomato" }}>
+                  Delete
+                </Text>
               </View>
             </Pressable>
-          )}
-          {item.archived == false ? (
-            <Pressable>
-              <View style={styles.postControlBtns}>
-                <Ionicons
-                  name="checkmark-done-outline"
-                  size={24}
-                  color="black"
-                />
-                <Text style={styles.controlBtnText}>Mark as sold</Text>
-              </View>
-            </Pressable>
-          ) : null}
-          <Ionicons
-            name="caret-up"
-            size={30}
-            color={colors.accent}
-            style={styles.tooltip}
-          />
-        </View>
+            {item.archived == false ? (
+              <Pressable
+                onPress={() => {
+                  setArchiveModal(true);
+                  setPostControl(false);
+                }}
+              >
+                <View style={styles.postControlBtns}>
+                  <Ionicons name="archive-outline" size={24} color="black" />
+                  <Text style={styles.controlBtnText}>Archive</Text>
+                </View>
+              </Pressable>
+            ) : (
+              <Pressable
+                onPress={() => {
+                  dispatch(unarchivePost(actionData));
+                  setPostControl(false);
+                }}
+              >
+                <View style={styles.postControlBtns}>
+                  <MaterialCommunityIcons
+                    name="archive-arrow-up-outline"
+                    size={24}
+                    color="black"
+                  />
+                  <Text style={styles.controlBtnText}>Unarchive</Text>
+                </View>
+              </Pressable>
+            )}
+            {item.archived == false ? (
+              <Pressable
+                onPress={() => {
+                  setSoldModalOne(true);
+                  setPostControl(false);
+                }}
+              >
+                <View style={styles.postControlBtns}>
+                  <Ionicons
+                    name="checkmark-done-outline"
+                    size={24}
+                    color="black"
+                  />
+                  <Text style={styles.controlBtnText}>Mark as sold</Text>
+                </View>
+              </Pressable>
+            ) : null}
+            <Ionicons
+              name="caret-up"
+              size={30}
+              color={colors.accent}
+              style={styles.tooltip}
+            />
+          </View>
+        ) : null
       ) : null}
+
+      {item.sold ? (
+        auth.user.soldList.includes(item.id) ? (
+          <View style={styles.soldMsg}>
+            <Image
+              source={require("../assets/sold_out.png")}
+              style={{ width: 150, height: 100, alignSelf: "center" }}
+            />
+            <Text
+              style={{ color: colors.contrast, fontSize: 18, marginTop: 10 }}
+              selectable
+            >
+              Buyer reference:{" "}
+              {item.soldTo.ref == "user"
+                ? item.soldTo.email
+                : item.soldTo.contact}
+            </Text>
+            <Text style={{ color: colors.contrast, fontSize: 18 }}>
+              Buyer type: {item.soldTo.ref}
+            </Text>
+          </View>
+        ) : null
+      ) : null}
+
+      <NavigationTab data={navigation} />
 
       {deleteModal ? (
         <>
@@ -565,7 +672,242 @@ const ItemScreen = ({ route, navigation, props }) => {
         </>
       ) : null}
 
-      <NavigationTab data={navigation} />
+      {soldModalOne ? (
+        <>
+          <Pressable
+            style={styles.ModalWrapper}
+            onPress={() => setSoldModalOne(false)}
+          ></Pressable>
+          <View style={styles.ModalContainer}>
+            <Text
+              style={{ fontSize: 20, marginBottom: 35, color: colors.accent }}
+            >
+              Does the buyer have an account on 'xChange'?
+            </Text>
+            <Pressable
+              style={{ marginBottom: 25 }}
+              onPress={() => {
+                setSoldModalTwo(true);
+                setSoldModalOne(false);
+              }}
+            >
+              <View style={{ flexDirection: "row", alignItems: "center" }}>
+                <Ionicons
+                  name="checkmark-outline"
+                  size={20}
+                  color={colors.theme}
+                />
+                <Text
+                  style={{
+                    fontSize: 18,
+                    marginLeft: 3,
+                    color: colors.theme,
+                  }}
+                >
+                  yes
+                </Text>
+              </View>
+            </Pressable>
+            <Pressable
+              style={{ marginBottom: 15 }}
+              onPress={() => {
+                setSoldModalOne(false);
+                setSoldModalThree(true);
+              }}
+            >
+              <View style={{ flexDirection: "row", alignItems: "center" }}>
+                <Ionicons
+                  name="close-outline"
+                  size={20}
+                  color={colors.secondary}
+                />
+                <Text style={{ fontSize: 18, color: colors.secondary }}>
+                  no
+                </Text>
+              </View>
+            </Pressable>
+          </View>
+        </>
+      ) : null}
+
+      {soldModalTwo ? (
+        <>
+          <Pressable
+            style={styles.ModalWrapper}
+            onPress={() => setSoldModalTwo(false)}
+          ></Pressable>
+          <View style={styles.ModalContainer}>
+            <Text
+              style={{ fontSize: 20, marginBottom: 35, color: colors.accent }}
+            >
+              Provide the buyers email associated with 'xChange' account.
+            </Text>
+            <Pressable
+              style={{ marginBottom: 25 }}
+              onPress={() => {
+                setSoldModalTwo(false);
+                setSoldModalOne(true);
+              }}
+            >
+              <View style={{ flexDirection: "row", alignItems: "center" }}>
+                <Ionicons
+                  name="arrow-back-outline"
+                  size={20}
+                  color={colors.secondary}
+                />
+                <Text
+                  style={{
+                    fontSize: 18,
+                    marginLeft: 3,
+                    color: colors.secondary,
+                  }}
+                >
+                  go back
+                </Text>
+              </View>
+            </Pressable>
+
+            <View>
+              <View
+                style={
+                  focused ? styles.inputContainerFocused : styles.inputContainer
+                }
+              >
+                <Ionicons
+                  name="mail-outline"
+                  size={24}
+                  color={focused ? colors.theme : colors.accent}
+                />
+                <TextInput
+                  placeholder="email"
+                  placeholderTextColor={colors.accent}
+                  autoCapitalize="none"
+                  autoCompleteType="email"
+                  autoCorrect={false}
+                  onFocus={() => setFocused(true)}
+                  onBlur={() => setFocused(false)}
+                  style={focused ? styles.inputBoxFocused : styles.inputBox}
+                  onChangeText={(e) => {
+                    setEmail(e);
+                    if (e != "") {
+                      setEmailError("");
+                    }
+                    validateEmail(e);
+                  }}
+                />
+              </View>
+              {emailError === "" ? null : (
+                <Text style={{ fontSize: 16, color: colors.accent }}>
+                  {emailError}
+                </Text>
+              )}
+              <Pressable
+                style={{
+                  backgroundColor: colors.theme,
+                  paddingVertical: 7,
+                  marginTop: 20,
+                  borderRadius: 5,
+                  elevation: 12,
+                }}
+                onPress={handleSoldToUser}
+              >
+                <Text style={{ fontSize: 18, textAlign: "center" }}>
+                  Submit
+                </Text>
+              </Pressable>
+            </View>
+          </View>
+        </>
+      ) : null}
+
+      {soldModalThree ? (
+        <>
+          <Pressable
+            style={styles.ModalWrapper}
+            onPress={() => setSoldModalThree(false)}
+          ></Pressable>
+          <View style={styles.ModalContainer}>
+            <Text
+              style={{ fontSize: 20, marginBottom: 35, color: colors.accent }}
+            >
+              Provide the buyers contact number.
+            </Text>
+            <Pressable
+              style={{ marginBottom: 25 }}
+              onPress={() => {
+                setSoldModalThree(false);
+                setSoldModalOne(true);
+              }}
+            >
+              <View style={{ flexDirection: "row", alignItems: "center" }}>
+                <Ionicons
+                  name="arrow-back-outline"
+                  size={20}
+                  color={colors.secondary}
+                />
+                <Text
+                  style={{
+                    fontSize: 18,
+                    marginLeft: 3,
+                    color: colors.secondary,
+                  }}
+                >
+                  go back
+                </Text>
+              </View>
+            </Pressable>
+
+            <View>
+              <View
+                style={
+                  focused ? styles.inputContainerFocused : styles.inputContainer
+                }
+              >
+                <Ionicons
+                  name="call-outline"
+                  size={24}
+                  color={focused ? colors.theme : colors.accent}
+                />
+                <TextInput
+                  placeholder="contact"
+                  autoCapitalize="none"
+                  placeholderTextColor={colors.accent}
+                  autoCorrect={false}
+                  keyboardType="phone-pad"
+                  onFocus={() => setFocused(true)}
+                  onBlur={() => setFocused(false)}
+                  style={focused ? styles.inputBoxFocused : styles.inputBox}
+                  onChangeText={(e) => {
+                    setContact(e);
+                    if (e != "") {
+                      setContactError("");
+                    }
+                    validateContact(e);
+                  }}
+                />
+              </View>
+              {contactError === "" ? null : (
+                <Text style={{ fontSize: 16, color: colors.accent }}>
+                  {contactError}
+                </Text>
+              )}
+              <Pressable
+                style={{
+                  backgroundColor: colors.theme,
+                  paddingVertical: 7,
+                  marginTop: 20,
+                  borderRadius: 5,
+                }}
+                onPress={handleSoldToGuest}
+              >
+                <Text style={{ fontSize: 18, textAlign: "center" }}>
+                  Submit
+                </Text>
+              </Pressable>
+            </View>
+          </View>
+        </>
+      ) : null}
     </View>
   );
 };
@@ -742,6 +1084,53 @@ const styles = StyleSheet.create({
     justifyContent: "space-around",
     padding: 15,
     elevation: 11,
+  },
+  soldMsg: {
+    position: "absolute",
+    top: 130,
+    backgroundColor: colors.accent,
+    padding: 15,
+    borderRadius: 10,
+  },
+  inputContainer: {
+    marginTop: 20,
+    paddingLeft: 5,
+    height: 40,
+    width: "85%",
+    borderColor: colors.accent,
+    borderWidth: 1,
+    borderRadius: 5,
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  inputContainerFocused: {
+    marginTop: 20,
+    paddingLeft: 5,
+    height: 40,
+    width: "85%",
+    borderColor: colors.theme,
+    borderWidth: 1,
+    borderRadius: 5,
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  inputBox: {
+    width: "89%",
+    marginLeft: 5,
+    borderColor: colors.accent,
+    borderLeftWidth: 1,
+    fontSize: 18,
+    paddingLeft: 5,
+    color: colors.accent,
+  },
+  inputBoxFocused: {
+    width: "89%",
+    marginLeft: 5,
+    borderColor: colors.theme,
+    borderLeftWidth: 1,
+    fontSize: 18,
+    paddingLeft: 5,
+    color: colors.accent,
   },
 });
 

@@ -1,7 +1,7 @@
 import React, { useRef, useEffect, useState } from "react";
 import { StyleSheet, Text, View, Pressable, Dimensions } from "react-native";
 import { useDispatch, useSelector } from "react-redux";
-import { logOut, removeFromWatch } from "../actions";
+import { archivePost, logOut, removeFromWatch } from "../actions";
 import colors from "../colors";
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import NavigationTab from "../components/NavigationTab";
@@ -13,7 +13,8 @@ const AccountScreen = ({ navigation, props }) => {
   const dispatch = useDispatch();
   const [currentView, setCurrentView] = useState("");
   const posts = useSelector((state) => state.post.posts);
-  const altPosts = useSelector((state) => state.post.altPosts);
+  const archivedPosts = useSelector((state) => state.post.archivedPosts);
+  const soldPosts = useSelector((state) => state.post.soldPosts);
   const user = useSelector((state) => state.auth.user);
 
   const handleLogout = () => {
@@ -33,7 +34,7 @@ const AccountScreen = ({ navigation, props }) => {
   const myWatchlist = () => {
     var myArray = [];
     posts.map((item) => {
-      if (user.watchList != undefined || user.watchList != null) {
+      if (user.watchList != undefined && user.watchList != null) {
         if (user.watchList.includes(item.id)) {
           myArray.push(item);
         }
@@ -44,13 +45,40 @@ const AccountScreen = ({ navigation, props }) => {
 
   const myArchives = () => {
     var myArray = [];
-    altPosts.map((item) => {
-      if (user.archiveList != undefined || user.archiveList != null) {
-        if (user.archiveList.includes(item.id)) {
-          myArray.push(item);
-        }
-      }
-    });
+    {
+      archivePost
+        ? archivedPosts.map((item) => {
+            if (user.archiveList != undefined && user.archiveList != null) {
+              if (user.archiveList.includes(item.id)) {
+                myArray.push(item);
+              }
+            }
+          })
+        : null;
+    }
+    return myArray;
+  };
+
+  const myHistory = () => {
+    var myArray = [];
+    {
+      soldPosts
+        ? soldPosts.map((item) => {
+            if (user.soldList != undefined && user.soldList != null) {
+              if (user.soldList.includes(item.id)) {
+                var object = { ...item, flag: "sold" };
+                myArray.push(object);
+              }
+            }
+            if (user.boughtList != undefined && user.boughtList != null) {
+              if (user.boughtList.includes(item.id)) {
+                var object_ = { ...item, flag: "bought" };
+                myArray.push(object_);
+              }
+            }
+          })
+        : null;
+    }
     return myArray;
   };
 
@@ -122,7 +150,11 @@ const AccountScreen = ({ navigation, props }) => {
             <Text style={styles.menuText}>drafts</Text>
           </Pressable>
 
-          <Pressable style={styles.menuBox}>
+          {/* my-history */}
+          <Pressable
+            style={styles.menuBox}
+            onPress={() => setCurrentView("history")}
+          >
             <MaterialCommunityIcons
               name="history"
               size={28}
@@ -203,6 +235,33 @@ const AccountScreen = ({ navigation, props }) => {
               })
             ) : (
               <Text style={{ fontSize: 18 }}>No items in watchlist</Text>
+            )}
+            <View style={{ height: 45 }}></View>
+          </ScrollView>
+        </View>
+      ) : null}
+
+      {/* history */}
+      {currentView == "history" ? (
+        <View style={styles.menuOverlay}>
+          <ScrollView
+            contentContainerStyle={styles.scrollArea}
+            showsVerticalScrollIndicator={false}
+          >
+            <View style={{ height: 8 }}></View>
+            {myHistory().length > 0 ? (
+              myHistory().map((item) => {
+                return (
+                  <MiniCard
+                    key={item.id}
+                    data={item}
+                    nav={navigation}
+                    historyFlag={item.flag}
+                  />
+                );
+              })
+            ) : (
+              <Text style={{ fontSize: 18 }}>No items in history</Text>
             )}
             <View style={{ height: 45 }}></View>
           </ScrollView>
