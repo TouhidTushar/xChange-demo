@@ -17,6 +17,10 @@ const AccountScreen = ({ navigation, props }) => {
   const soldPosts = useSelector((state) => state.post.soldPosts);
   const user = useSelector((state) => state.auth.user);
 
+  useEffect(() => {
+    setCurrentView("");
+  }, []);
+
   const handleLogout = () => {
     dispatch(logOut());
   };
@@ -85,27 +89,20 @@ const AccountScreen = ({ navigation, props }) => {
   return (
     <View style={styles.wrapper}>
       <View style={styles.header}>
-        {currentView == "" ? (
-          <Pressable
-            onPress={() => navigation.goBack()}
-            style={{ position: "absolute", left: 10, bottom: 8 }}
-          >
-            <Ionicons
-              name="arrow-back-outline"
-              size={24}
-              color={colors.accent}
-            />
-          </Pressable>
-        ) : (
-          <Pressable
-            onPress={() => setCurrentView("")}
-            style={{ position: "absolute", right: 10, bottom: 8 }}
-          >
-            <Ionicons name="close" size={24} color={colors.accent} />
-          </Pressable>
-        )}
+        <Pressable
+          onPress={() => {
+            currentView == "" ? navigation.goBack() : setCurrentView("");
+          }}
+          style={{ position: "absolute", left: 10, bottom: 8 }}
+        >
+          <Ionicons name="arrow-back-outline" size={24} color={colors.accent} />
+        </Pressable>
         <Text style={styles.headerText}>
-          {currentView == "" ? "Account" : currentView}
+          {currentView == ""
+            ? user.username
+              ? user.username
+              : "Account"
+            : currentView}
         </Text>
       </View>
 
@@ -127,7 +124,11 @@ const AccountScreen = ({ navigation, props }) => {
             <Text style={styles.menuText}>my listings</Text>
           </Pressable>
 
-          <Pressable style={styles.menuBox}>
+          {/* my-inbox */}
+          <Pressable
+            style={styles.menuBox}
+            onPress={() => setCurrentView("inbox")}
+          >
             <Ionicons
               name="chatbox-ellipses-outline"
               size={28}
@@ -145,7 +146,11 @@ const AccountScreen = ({ navigation, props }) => {
             <Text style={styles.menuText}>watchlist</Text>
           </Pressable>
 
-          <Pressable style={styles.menuBox}>
+          {/* my drafts */}
+          <Pressable
+            style={styles.menuBox}
+            onPress={() => setCurrentView("drafts")}
+          >
             <Ionicons name="bookmark-outline" size={28} color={colors.accent} />
             <Text style={styles.menuText}>drafts</Text>
           </Pressable>
@@ -172,12 +177,18 @@ const AccountScreen = ({ navigation, props }) => {
             <Text style={styles.menuText}>archive</Text>
           </Pressable>
 
-          <View style={styles.menuBox}>
+          {/* my-user-status */}
+          <Pressable
+            style={styles.menuBox}
+            onPress={() => setCurrentView("user status")}
+          >
+            <Ionicons name="ribbon-outline" size={28} color={colors.accent} />
             <Text style={{ fontSize: 18, marginLeft: 8, color: colors.accent }}>
-              {/* {user.username} */}
+              status
             </Text>
-          </View>
+          </Pressable>
 
+          {/* blank */}
           <View
             style={{
               ...styles.menuBox,
@@ -185,7 +196,17 @@ const AccountScreen = ({ navigation, props }) => {
               elevation: 0,
             }}
           ></View>
-          <Pressable onPress={handleLogout} style={styles.logOutBtn}>
+
+          <Pressable style={styles.userActionBtn}>
+            <Ionicons
+              name="person-circle-outline"
+              size={40}
+              color={colors.theme}
+            />
+            <Text style={{ fontSize: 18, marginLeft: 8 }}>Edit profile</Text>
+          </Pressable>
+
+          <Pressable onPress={handleLogout} style={styles.userActionBtn}>
             <Ionicons name="exit-outline" size={40} color="tomato" />
             <Text style={{ fontSize: 18, marginLeft: 8 }}>Log Out</Text>
           </Pressable>
@@ -194,7 +215,7 @@ const AccountScreen = ({ navigation, props }) => {
 
       {/* ---------- dynamic views ----------*/}
 
-      {/* my-listings */}
+      {/* listings */}
       {currentView == "my-listings" ? (
         <View style={styles.menuOverlay}>
           <ScrollView
@@ -209,6 +230,24 @@ const AccountScreen = ({ navigation, props }) => {
             ) : (
               <Text style={{ fontSize: 18 }}>No items in my listings</Text>
             )}
+            <View style={{ height: 45 }}></View>
+          </ScrollView>
+        </View>
+      ) : null}
+
+      {/* inbox */}
+      {currentView == "inbox" ? (
+        <View style={styles.menuOverlay}>
+          <ScrollView
+            contentContainerStyle={styles.scrollArea}
+            showsVerticalScrollIndicator={false}
+          >
+            <View style={{ height: 8 }}></View>
+
+            <Text style={{ fontSize: 18 }}>
+              "this screen is currently in development stage"
+            </Text>
+
             <View style={{ height: 45 }}></View>
           </ScrollView>
         </View>
@@ -236,6 +275,24 @@ const AccountScreen = ({ navigation, props }) => {
             ) : (
               <Text style={{ fontSize: 18 }}>No items in watchlist</Text>
             )}
+            <View style={{ height: 45 }}></View>
+          </ScrollView>
+        </View>
+      ) : null}
+
+      {/* drafts */}
+      {currentView == "drafts" ? (
+        <View style={styles.menuOverlay}>
+          <ScrollView
+            contentContainerStyle={styles.scrollArea}
+            showsVerticalScrollIndicator={false}
+          >
+            <View style={{ height: 8 }}></View>
+
+            <Text style={{ fontSize: 18 }}>
+              "this screen is currently in development stage"
+            </Text>
+
             <View style={{ height: 45 }}></View>
           </ScrollView>
         </View>
@@ -295,6 +352,24 @@ const AccountScreen = ({ navigation, props }) => {
         </View>
       ) : null}
 
+      {/* user status */}
+      {currentView == "user status" ? (
+        <View style={styles.menuOverlay}>
+          <ScrollView
+            contentContainerStyle={styles.scrollArea}
+            showsVerticalScrollIndicator={false}
+          >
+            <View style={{ height: 8 }}></View>
+
+            <Text style={{ fontSize: 18 }}>
+              "this screen is currently in development stage"
+            </Text>
+
+            <View style={{ height: 45 }}></View>
+          </ScrollView>
+        </View>
+      ) : null}
+
       <NavigationTab data={navigation} screen="account" />
     </View>
   );
@@ -346,14 +421,15 @@ const styles = StyleSheet.create({
     paddingLeft: 8,
     paddingVertical: 5,
   },
-  logOutBtn: {
-    width: "100%",
+  userActionBtn: {
+    width: "90%",
     flexDirection: "row",
     alignItems: "center",
-    borderColor: colors.primary,
-    borderTopWidth: 2,
-    marginTop: 25,
-    paddingLeft: 10,
+    marginTop: 30,
+    borderRadius: 50,
+    justifyContent: "center",
+    elevation: 3,
+    backgroundColor: colors.accent,
   },
   menuOverlay: {
     position: "absolute",

@@ -26,7 +26,7 @@ const postReducer = (state = initState, action) => {
         loading: false,
         posting: false,
         posts: action.posts,
-        message: "posts retrieved",
+        message: "",
       };
       break;
     case postConstants.GETPOST_FAILURE:
@@ -47,7 +47,7 @@ const postReducer = (state = initState, action) => {
         result: true,
         loading: false,
         archivedPosts: action.posts,
-        message: "posts retrieved",
+        message: "",
       };
       break;
     case postConstants.GETARCHIVEDPOST_FAILURE:
@@ -68,7 +68,7 @@ const postReducer = (state = initState, action) => {
         result: true,
         loading: false,
         soldPosts: action.posts,
-        message: "posts retrieved",
+        message: "",
       };
       break;
     case postConstants.GETSOLDPOST_FAILURE:
@@ -92,7 +92,7 @@ const postReducer = (state = initState, action) => {
       state = {
         ...state,
         result: true,
-        message: "done",
+        message: "",
       };
       break;
     case postConstants.POST_FAILURE:

@@ -7,11 +7,13 @@ import {
   Image,
   Animated,
   Easing,
+  Dimensions,
 } from "react-native";
 import { useDispatch, useSelector } from "react-redux";
 import { removeFromWatch, unarchivePost } from "../actions";
 import { AntDesign } from "@expo/vector-icons";
 import colors from "../colors";
+import { LinearGradient } from "expo-linear-gradient";
 
 const LoaderView = (props) => {
   const loadingAnim = useRef(new Animated.Value(0)).current;
@@ -89,6 +91,10 @@ const MiniCard = (props) => {
         style={styles.card}
       >
         <Image source={{ uri: data.images[0].image }} style={styles.imageBox} />
+        <LinearGradient
+          colors={["transparent", "rgba(0,0,0,0.9)"]}
+          style={styles.imageCover}
+        />
         <View style={styles.detailsBox}>
           <Text style={styles.mainText}>{data.itemName}</Text>
           <Text style={styles.subText}>{prepareDate()}</Text>
@@ -100,12 +106,12 @@ const MiniCard = (props) => {
           <LoaderView
             style={{
               position: "absolute",
-              elevation: 4,
-              bottom: 5,
-              right: 5,
+              elevation: 3,
+              bottom: 10,
+              right: 10,
             }}
           >
-            <AntDesign name="loading1" size={18} color={colors.primary} />
+            <AntDesign name="loading1" size={18} color={colors.theme} />
           </LoaderView>
         ) : (
           <Pressable style={styles.rmvBtn} onPress={handleRemoveFromWatchlist}>
@@ -138,32 +144,40 @@ const MiniCard = (props) => {
 
 const styles = StyleSheet.create({
   cardWrapper: {
-    height: 80,
+    height: 100,
     width: "92%",
     marginVertical: 8,
-    borderRadius: 5,
+    borderRadius: 10,
     alignItems: "center",
     flexDirection: "row",
     backgroundColor: colors.accent,
     elevation: 3,
   },
   card: {
-    height: 80,
+    height: 100,
     width: "100%",
     marginVertical: 8,
-    borderRadius: 5,
+    borderRadius: 10,
     alignItems: "center",
-    padding: 5,
     flexDirection: "row",
     backgroundColor: colors.accent,
     elevation: 3,
   },
   imageBox: {
-    height: 69,
-    width: 92,
-    borderRadius: 5,
+    height: 100,
+    width: "100%",
+    borderRadius: 10,
+  },
+  imageCover: {
+    position: "absolute",
+    left: Dimensions.get("screen").width * 0.46 - 50,
+    width: 100,
+    height: Dimensions.get("screen").width * 0.92,
+    transform: [{ rotateZ: "90deg" }],
+    borderRadius: 10,
   },
   detailsBox: {
+    position: "absolute",
     height: 70,
     marginLeft: 8,
   },
@@ -173,17 +187,21 @@ const styles = StyleSheet.create({
     marginBottom: 3,
   },
   subText: {
-    fontSize: 16,
-    color: colors.contrast,
+    fontSize: 18,
+    color: colors.accent,
   },
   rmvBtn: {
     position: "absolute",
-    elevation: 4,
-    bottom: 5,
+    backgroundColor: "tomato",
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: 50,
+    elevation: 3,
+    bottom: 10,
     right: 10,
   },
   btnText: {
-    color: "tomato",
+    color: colors.accent,
     fontSize: 16,
   },
 });

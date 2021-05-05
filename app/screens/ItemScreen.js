@@ -30,6 +30,7 @@ import {
   markSold,
 } from "../actions";
 import firebase from "firebase";
+import { LinearGradient } from "expo-linear-gradient";
 
 const LoaderView = (props) => {
   const loadingAnim = useRef(new Animated.Value(0)).current;
@@ -54,6 +55,36 @@ const LoaderView = (props) => {
       style={{
         ...props.style,
         transform: [{ rotateZ: rotation }],
+      }}
+    >
+      {props.children}
+    </Animated.View>
+  );
+};
+
+const SlideInView = (props) => {
+  const slideAnim = useRef(
+    new Animated.Value(
+      props.alt
+        ? Dimensions.get("screen").width
+        : -Dimensions.get("screen").width
+    )
+  ).current;
+
+  useEffect(() => {
+    Animated.timing(slideAnim, {
+      toValue: 0,
+      delay: props.delay,
+      duration: 800,
+      useNativeDriver: true,
+    }).start();
+  }, [slideAnim]);
+
+  return (
+    <Animated.View
+      style={{
+        ...props.style,
+        transform: [{ translateX: slideAnim }],
       }}
     >
       {props.children}
@@ -249,6 +280,16 @@ const ItemScreen = ({ route, navigation, props }) => {
           })}
         </ScrollView>
         <View style={styles.imgIndicatorBox}>
+          <LinearGradient
+            colors={[
+              "transparent",
+              "transparent",
+              "transparent",
+              "transparent",
+              "rgba(0,0,0,0.2)",
+            ]}
+            style={styles.imgIndicatorBG}
+          />
           {item.images.map((img, index) => {
             return (
               <Text
@@ -297,7 +338,7 @@ const ItemScreen = ({ route, navigation, props }) => {
                     backgroundColor: colors.accent,
                   }}
                 >
-                  <Ionicons name="eye-outline" size={28} color={colors.theme} />
+                  <Ionicons name="eye" size={28} color={colors.theme} />
                   <Text style={{ ...styles.iconText, color: colors.theme }}>
                     add to watchlist
                   </Text>
@@ -310,11 +351,7 @@ const ItemScreen = ({ route, navigation, props }) => {
                     backgroundColor: colors.accent,
                   }}
                 >
-                  <Ionicons
-                    name="eye-outline"
-                    size={28}
-                    color={colors.contrast}
-                  />
+                  <Ionicons name="eye" size={28} color={colors.contrast} />
                   <Text style={{ ...styles.iconText, color: colors.contrast }}>
                     remove
                   </Text>
@@ -327,7 +364,7 @@ const ItemScreen = ({ route, navigation, props }) => {
                     backgroundColor: colors.accent,
                   }}
                 >
-                  <Ionicons name="eye-outline" size={28} color={colors.theme} />
+                  <Ionicons name="eye" size={28} color={colors.theme} />
                   <Text style={{ ...styles.iconText, color: colors.theme }}>
                     add to watchlist
                   </Text>
@@ -342,7 +379,7 @@ const ItemScreen = ({ route, navigation, props }) => {
                 }}
               >
                 <Ionicons
-                  name="chatbox-ellipses-outline"
+                  name="chatbox-ellipses"
                   size={28}
                   color={colors.theme}
                 />
@@ -352,14 +389,20 @@ const ItemScreen = ({ route, navigation, props }) => {
               </Pressable>
 
               <Pressable
-                onPress={() => setCallOptions(true)}
+                onPress={() => {
+                  if (callOptions) {
+                    setCallOptions(false);
+                  } else {
+                    setCallOptions(true);
+                  }
+                }}
                 style={{
                   ...styles.actionIcons,
                   backgroundColor: callOptions ? colors.theme : colors.accent,
                 }}
               >
                 <Ionicons
-                  name="call-outline"
+                  name="call"
                   size={28}
                   color={callOptions ? colors.accent : colors.theme}
                 />
@@ -384,7 +427,7 @@ const ItemScreen = ({ route, navigation, props }) => {
               }}
             >
               <Ionicons
-                name="call-outline"
+                name="call"
                 size={28}
                 color={callOptions ? colors.accent : colors.theme}
               />
@@ -402,6 +445,12 @@ const ItemScreen = ({ route, navigation, props }) => {
 
         {callOptions ? (
           <View style={styles.callOptionsBox}>
+            <Ionicons
+              name="caret-up"
+              size={36}
+              color={colors.secondary}
+              style={{ position: "absolute", top: -25, right: 40 }}
+            />
             <Text style={styles.callText} selectable>
               Do you want to call {item.postedBy.contact} for this item?
             </Text>
@@ -424,37 +473,53 @@ const ItemScreen = ({ route, navigation, props }) => {
         ) : null}
 
         <View style={styles.fieldsContainer}>
-          <View style={styles.fields}>
+          <SlideInView style={styles.fields} delay={100}>
+            <LinearGradient
+              colors={[colors.theme, "transparent"]}
+              style={styles.fieldsBgAlt}
+            />
             <View style={styles.fieldHead}>
               <MaterialIcons name="category" size={24} color={colors.theme} />
               <Text style={styles.fieldName}>Category</Text>
             </View>
             <Text style={styles.fieldText}>{item.category}</Text>
-          </View>
+          </SlideInView>
 
-          <View style={styles.fields}>
+          <SlideInView style={styles.fieldsAlt} alt delay={200}>
+            <LinearGradient
+              colors={["transparent", colors.theme]}
+              style={styles.fieldsBg}
+            />
             <View style={styles.fieldHead}>
-              <Ionicons name="location" size={24} color={colors.theme} />
               <Text style={styles.fieldName}>Location</Text>
+              <Ionicons name="location" size={24} color={colors.theme} />
             </View>
             <Text style={styles.fieldText}>{item.location}</Text>
-          </View>
+          </SlideInView>
 
-          <View style={styles.fields}>
+          <SlideInView style={styles.fields} delay={300}>
+            <LinearGradient
+              colors={[colors.theme, "transparent"]}
+              style={styles.fieldsBgAlt}
+            />
             <View style={styles.fieldHead}>
               <Ionicons name="person" size={24} color={colors.theme} />
               <Text style={styles.fieldName}>Posted by</Text>
             </View>
             <Text style={styles.fieldText}>{item.postedBy.username}</Text>
-          </View>
+          </SlideInView>
 
-          <View style={styles.fields}>
+          <SlideInView style={styles.fieldsAlt} alt delay={400}>
+            <LinearGradient
+              colors={["transparent", colors.theme]}
+              style={styles.fieldsBg}
+            />
             <View style={styles.fieldHead}>
-              <Ionicons name="calendar" size={24} color={colors.theme} />
               <Text style={styles.fieldName}>Posted on</Text>
+              <Ionicons name="calendar" size={24} color={colors.theme} />
             </View>
             <Text style={styles.fieldText}>{prepareDate()}</Text>
-          </View>
+          </SlideInView>
         </View>
 
         <View style={styles.aboutBox}>
@@ -552,25 +617,27 @@ const ItemScreen = ({ route, navigation, props }) => {
       ) : null}
 
       {item.sold ? (
-        auth.user.soldList.includes(item.id) ? (
-          <View style={styles.soldMsg}>
-            <Image
-              source={require("../assets/sold_out.png")}
-              style={{ width: 150, height: 100, alignSelf: "center" }}
-            />
-            <Text
-              style={{ color: colors.contrast, fontSize: 18, marginTop: 10 }}
-              selectable
-            >
-              Buyer reference:{" "}
-              {item.soldTo.ref == "user"
-                ? item.soldTo.email
-                : item.soldTo.contact}
-            </Text>
-            <Text style={{ color: colors.contrast, fontSize: 18 }}>
-              Buyer type: {item.soldTo.ref}
-            </Text>
-          </View>
+        auth.user.soldList ? (
+          auth.user.soldList.includes(item.id) ? (
+            <View style={styles.soldMsg}>
+              <Image
+                source={require("../assets/sold_out.png")}
+                style={{ width: 150, height: 100, alignSelf: "center" }}
+              />
+              <Text
+                style={{ color: colors.contrast, fontSize: 18, marginTop: 10 }}
+                selectable
+              >
+                Buyer reference:{" "}
+                {item.soldTo.ref == "user"
+                  ? item.soldTo.email
+                  : item.soldTo.contact}
+              </Text>
+              <Text style={{ color: colors.contrast, fontSize: 18 }}>
+                Buyer type: {item.soldTo.ref}
+              </Text>
+            </View>
+          ) : null
         ) : null
       ) : null}
 
@@ -970,6 +1037,13 @@ const styles = StyleSheet.create({
     alignSelf: "center",
     top: Dimensions.get("screen").width * 0.7,
   },
+  imgIndicatorBG: {
+    width: Dimensions.get("screen").width,
+    position: "absolute",
+    height: Dimensions.get("screen").width * 0.75,
+    bottom: 0,
+    left: -Dimensions.get("screen").width / 2.3,
+  },
   imgIndicators: {
     color: colors.accent,
     marginHorizontal: 2,
@@ -995,7 +1069,7 @@ const styles = StyleSheet.create({
   },
   itemActionBox: {
     flexDirection: "row",
-    marginTop: 20,
+    marginTop: 40,
   },
   actionIcons: {
     justifyContent: "center",
@@ -1009,16 +1083,16 @@ const styles = StyleSheet.create({
   },
   callOptionsBox: {
     width: "92%",
-    backgroundColor: colors.accent,
+    backgroundColor: colors.secondary,
     paddingHorizontal: 10,
     paddingVertical: 25,
     elevation: 3,
     borderRadius: 10,
-    marginTop: 30,
+    marginTop: 20,
   },
   callText: {
     textAlign: "center",
-    fontSize: 16,
+    fontSize: 18,
     marginBottom: 15,
   },
   callBtns: {
@@ -1027,34 +1101,72 @@ const styles = StyleSheet.create({
   },
   btnText: {
     fontSize: 18,
-    width: 50,
-    height: 50,
+    width: 80,
+    height: 40,
     borderRadius: 25,
     textAlign: "center",
     textAlignVertical: "center",
     marginHorizontal: 25,
-    elevation: 5,
+    elevation: 1,
     backgroundColor: colors.accent,
   },
   fieldsContainer: {
     width: "92%",
-    marginVertical: 30,
-    borderColor: colors.theme,
-    borderWidth: 1,
+    marginVertical: 50,
     borderRadius: 5,
     flexWrap: "wrap",
     flexDirection: "row",
   },
-  fields: {
-    height: 80,
-    width: "50%",
-    borderColor: colors.theme,
-    borderWidth: 1,
-    padding: 10,
+  fieldsBg: {
+    position: "absolute",
+    left: Dimensions.get("screen").width * 0.46 - 40,
+    width: 80,
+    height: Dimensions.get("screen").width * 0.92,
+    transform: [{ rotateZ: "90deg" }],
+    borderBottomRightRadius: 40,
+    borderBottomLeftRadius: 40,
   },
-  fieldHead: { flexDirection: "row", alignItems: "center" },
-  fieldName: { fontSize: 20, marginLeft: 3, color: colors.theme },
-  fieldText: { fontSize: 18, marginTop: 8 },
+  fieldsBgAlt: {
+    position: "absolute",
+    left: Dimensions.get("screen").width * 0.46 - 40,
+    width: 80,
+    height: Dimensions.get("screen").width * 0.92,
+    transform: [{ rotateZ: "90deg" }],
+    borderTopRightRadius: 40,
+    borderTopLeftRadius: 40,
+  },
+  fields: {
+    marginVertical: 5,
+    height: 80,
+    width: "100%",
+    paddingHorizontal: 25,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+  },
+  fieldsAlt: {
+    height: 80,
+    width: "100%",
+    padding: 10,
+    flexDirection: "row-reverse",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingHorizontal: 25,
+  },
+  fieldHead: {
+    flexDirection: "row",
+    alignItems: "center",
+    height: 80,
+  },
+  fieldName: {
+    fontSize: 22,
+    marginHorizontal: 3,
+    color: colors.theme,
+  },
+  fieldText: {
+    fontSize: 22,
+    color: colors.accent,
+  },
   aboutBox: {
     width: "100%",
     paddingHorizontal: 20,

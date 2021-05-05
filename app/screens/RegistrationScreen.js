@@ -8,18 +8,19 @@ import {
   Pressable,
   TextInput,
 } from "react-native";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { register } from "../actions/auth.action";
 import colors from "../colors";
 import { Ionicons } from "@expo/vector-icons";
+import { ScrollView } from "react-native-gesture-handler";
 
 const ScaleInView = (props) => {
   const scaleAnim = useRef(new Animated.Value(0.78)).current;
 
   useEffect(() => {
     Animated.timing(scaleAnim, {
-      toValue: 0,
-      duration: 1000,
+      toValue: 0.7,
+      duration: 500,
       useNativeDriver: true,
     }).start();
   }, [scaleAnim]);
@@ -38,6 +39,9 @@ const ScaleInView = (props) => {
 
 const RegistrationScreen = ({ navigation, props }) => {
   const dispatch = useDispatch();
+  const auth = useSelector((state) => state.auth);
+  const [didMount, setDidMount] = useState(false);
+  const [response, setResponse] = useState(false);
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
   const [contact, setContact] = useState("");
@@ -55,6 +59,26 @@ const RegistrationScreen = ({ navigation, props }) => {
   const [focused, setFocused] = useState(0);
 
   const userData = { username, email, contact, password };
+
+  useEffect(() => {
+    setDidMount(true);
+    return () => setDidMount(false);
+  }, []);
+
+  useEffect(() => {
+    if (didMount == true) {
+      if (
+        auth.message != null &&
+        auth.result == false &&
+        auth.message != "session expired!"
+      ) {
+        setResponse(true);
+      }
+      setTimeout(() => {
+        setResponse(false);
+      }, 4000);
+    }
+  }, [auth.message, didMount]);
 
   const validateEmail = (text) => {
     let reg = /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/;
@@ -147,189 +171,209 @@ const RegistrationScreen = ({ navigation, props }) => {
   return (
     <View style={styles.wrapper}>
       <ScaleInView style={styles.upperCircle}></ScaleInView>
-
-      <Text style={styles.title}>SIGN UP</Text>
-
-      <View
-        style={
-          focused == 1 ? styles.inputContainerFocused : styles.inputContainer
-        }
+      <ScrollView
+        contentContainerStyle={styles.scrollArea}
+        showsVerticalScrollIndicator={false}
       >
-        <Ionicons
-          name="md-person-outline"
-          size={24}
-          color={focused == 1 ? colors.primary : colors.theme}
-        />
-        <TextInput
-          placeholder="username"
-          autoCapitalize="none"
-          autoCompleteType="name"
-          autoCorrect={false}
-          maxLength={20}
-          onFocus={() => setFocused(1)}
-          onBlur={() => setFocused(0)}
-          style={focused == 1 ? styles.inputBoxFocused : styles.inputBox}
-          onChangeText={(e) => {
-            setUsername(e);
-            if (e != "") {
-              setUsernameError("");
-            }
-          }}
-        />
-      </View>
+        <Text style={styles.title}>SIGN UP</Text>
 
-      {usernameError === "" ? null : (
-        <Text style={styles.inputMsg}>{usernameError}</Text>
-      )}
-
-      <View
-        style={
-          focused == 2 ? styles.inputContainerFocused : styles.inputContainer
-        }
-      >
-        <Ionicons
-          name="mail-outline"
-          size={24}
-          color={focused == 2 ? colors.primary : colors.theme}
-        />
-        <TextInput
-          placeholder="email"
-          autoCapitalize="none"
-          autoCompleteType="email"
-          autoCorrect={false}
-          onFocus={() => setFocused(2)}
-          onBlur={() => setFocused(0)}
-          style={focused == 2 ? styles.inputBoxFocused : styles.inputBox}
-          onChangeText={(e) => {
-            setEmail(e);
-            if (e != "") {
-              setEmailError("");
-            }
-            validateEmail(e);
-          }}
-        />
-      </View>
-
-      {emailError === "" ? null : (
-        <Text style={styles.inputMsg}>{emailError}</Text>
-      )}
-
-      <View
-        style={
-          focused == 3 ? styles.inputContainerFocused : styles.inputContainer
-        }
-      >
-        <Ionicons
-          name="call-outline"
-          size={24}
-          color={focused == 3 ? colors.primary : colors.theme}
-        />
-        <TextInput
-          placeholder="contact"
-          autoCapitalize="none"
-          autoCorrect={false}
-          keyboardType="phone-pad"
-          onFocus={() => setFocused(3)}
-          onBlur={() => setFocused(0)}
-          style={focused == 3 ? styles.inputBoxFocused : styles.inputBox}
-          onChangeText={(e) => {
-            setContact(e);
-            if (e != "") {
-              setContactError("");
-            }
-            validateContact(e);
-          }}
-        />
-      </View>
-
-      {contactError === "" ? null : (
-        <Text style={styles.inputMsg}>{contactError}</Text>
-      )}
-
-      <View
-        style={
-          focused == 4 ? styles.inputContainerFocused : styles.inputContainer
-        }
-      >
-        <Ionicons
-          name="key-outline"
-          size={24}
-          color={focused == 4 ? colors.primary : colors.theme}
-        />
-        <TextInput
-          placeholder="password"
-          autoCapitalize="none"
-          autoCorrect={false}
-          secureTextEntry={true}
-          onFocus={() => setFocused(4)}
-          onBlur={() => setFocused(0)}
-          style={focused == 4 ? styles.inputBoxFocused : styles.inputBox}
-          onChangeText={(e) => {
-            setPassword(e);
-            if (e != "") {
-              setPasswordError("");
-            }
-          }}
-        />
-      </View>
-
-      {passwordError === "" ? null : (
-        <Text style={styles.inputMsg}>{passwordError}</Text>
-      )}
-
-      <View
-        style={
-          focused == 5 ? styles.inputContainerFocused : styles.inputContainer
-        }
-      >
-        <Ionicons
-          name="key"
-          size={24}
-          color={focused == 5 ? colors.primary : colors.theme}
-        />
-        <TextInput
-          placeholder="confirm password"
-          autoCapitalize="none"
-          autoCorrect={false}
-          secureTextEntry={true}
-          onFocus={() => setFocused(5)}
-          onBlur={() => setFocused(0)}
-          style={focused == 5 ? styles.inputBoxFocused : styles.inputBox}
-          onChangeText={(e) => {
-            setConfirmPassword(e);
-          }}
-        />
-      </View>
-
-      {confirmPasswordError === "" ? null : (
-        <Text
+        <View
           style={
-            confirmPasswordError === "matching"
-              ? { ...styles.inputMsg, color: colors.theme }
-              : styles.inputMsg
+            focused == 1 ? styles.inputContainerFocused : styles.inputContainer
           }
         >
-          {confirmPasswordError}
-        </Text>
-      )}
+          <Ionicons
+            name="md-person-outline"
+            size={24}
+            color={focused == 1 ? colors.primary : colors.theme}
+          />
+          <TextInput
+            placeholder="username"
+            autoCapitalize="none"
+            autoCompleteType="name"
+            autoCorrect={false}
+            maxLength={20}
+            onFocus={() => setFocused(1)}
+            onBlur={() => setFocused(0)}
+            style={focused == 1 ? styles.inputBoxFocused : styles.inputBox}
+            onChangeText={(e) => {
+              setUsername(e);
+              if (e != "") {
+                setUsernameError("");
+              }
+            }}
+          />
+        </View>
 
-      <Pressable style={styles.registerBtn} onPress={handleRegister}>
-        <Text style={styles.btnText}>Register</Text>
-      </Pressable>
+        {usernameError === "" ? null : (
+          <Text style={styles.inputMsg}>{usernameError}</Text>
+        )}
 
-      <Pressable onPress={() => navigation.navigate("login")}>
-        <Text style={styles.logLink}>have an account? login</Text>
-      </Pressable>
+        <View
+          style={
+            focused == 2 ? styles.inputContainerFocused : styles.inputContainer
+          }
+        >
+          <Ionicons
+            name="mail-outline"
+            size={24}
+            color={focused == 2 ? colors.primary : colors.theme}
+          />
+          <TextInput
+            placeholder="email"
+            autoCapitalize="none"
+            autoCompleteType="email"
+            autoCorrect={false}
+            onFocus={() => setFocused(2)}
+            onBlur={() => setFocused(0)}
+            style={focused == 2 ? styles.inputBoxFocused : styles.inputBox}
+            onChangeText={(e) => {
+              setEmail(e);
+              if (e != "") {
+                setEmailError("");
+              }
+              validateEmail(e);
+            }}
+          />
+        </View>
+
+        {emailError === "" ? null : (
+          <Text style={styles.inputMsg}>{emailError}</Text>
+        )}
+
+        <View
+          style={
+            focused == 3 ? styles.inputContainerFocused : styles.inputContainer
+          }
+        >
+          <Ionicons
+            name="call-outline"
+            size={24}
+            color={focused == 3 ? colors.primary : colors.theme}
+          />
+          <TextInput
+            placeholder="contact"
+            autoCapitalize="none"
+            autoCorrect={false}
+            keyboardType="phone-pad"
+            onFocus={() => setFocused(3)}
+            onBlur={() => setFocused(0)}
+            style={focused == 3 ? styles.inputBoxFocused : styles.inputBox}
+            onChangeText={(e) => {
+              setContact(e);
+              if (e != "") {
+                setContactError("");
+              }
+              validateContact(e);
+            }}
+          />
+        </View>
+
+        {contactError === "" ? null : (
+          <Text style={styles.inputMsg}>{contactError}</Text>
+        )}
+
+        <View
+          style={
+            focused == 4 ? styles.inputContainerFocused : styles.inputContainer
+          }
+        >
+          <Ionicons
+            name="key-outline"
+            size={24}
+            color={focused == 4 ? colors.primary : colors.theme}
+          />
+          <TextInput
+            placeholder="password"
+            autoCapitalize="none"
+            autoCorrect={false}
+            secureTextEntry={true}
+            onFocus={() => setFocused(4)}
+            onBlur={() => setFocused(0)}
+            style={focused == 4 ? styles.inputBoxFocused : styles.inputBox}
+            onChangeText={(e) => {
+              setPassword(e);
+              if (e != "") {
+                setPasswordError("");
+              }
+            }}
+          />
+        </View>
+
+        {passwordError === "" ? null : (
+          <Text style={styles.inputMsg}>{passwordError}</Text>
+        )}
+
+        <View
+          style={
+            focused == 5 ? styles.inputContainerFocused : styles.inputContainer
+          }
+        >
+          <Ionicons
+            name="key"
+            size={24}
+            color={focused == 5 ? colors.primary : colors.theme}
+          />
+          <TextInput
+            placeholder="confirm password"
+            autoCapitalize="none"
+            autoCorrect={false}
+            secureTextEntry={true}
+            onFocus={() => setFocused(5)}
+            onBlur={() => setFocused(0)}
+            style={focused == 5 ? styles.inputBoxFocused : styles.inputBox}
+            onChangeText={(e) => {
+              setConfirmPassword(e);
+            }}
+          />
+        </View>
+
+        {confirmPasswordError === "" ? null : (
+          <Text
+            style={
+              confirmPasswordError === "matching"
+                ? { ...styles.inputMsg, color: colors.theme }
+                : styles.inputMsg
+            }
+          >
+            {confirmPasswordError}
+          </Text>
+        )}
+
+        <Pressable style={styles.registerBtn} onPress={handleRegister}>
+          <Text style={styles.btnText}>Register</Text>
+        </Pressable>
+
+        {response ? (
+          <View style={{ marginTop: 25 }}>
+            <Text
+              style={{ fontSize: 18, color: "tomato", textAlign: "center" }}
+            >
+              {auth.message}
+            </Text>
+          </View>
+        ) : null}
+
+        <Pressable onPress={() => navigation.navigate("login")}>
+          <Text style={styles.logLink}>have an account? login</Text>
+        </Pressable>
+      </ScrollView>
     </View>
   );
 };
 
 const styles = StyleSheet.create({
   wrapper: {
-    flex: 1,
-    justifyContent: "center",
+    width: Dimensions.get("screen").width,
+    height: "100%",
     alignItems: "center",
     backgroundColor: colors.accent,
+  },
+  scrollArea: {
+    width: Dimensions.get("screen").width,
+    alignItems: "center",
+    justifyContent: "center",
+    height: Dimensions.get("window").height,
   },
   upperCircle: {
     backgroundColor: colors.theme,
@@ -337,7 +381,9 @@ const styles = StyleSheet.create({
     height: Dimensions.get("window").width * 5,
     width: Dimensions.get("window").width * 5,
     borderRadius: Dimensions.get("window").width * 2.5,
-    bottom: "50%",
+    top:
+      -(Dimensions.get("window").width * 5) +
+      Dimensions.get("window").height * 0.5,
     justifyContent: "center",
     alignItems: "center",
     elevation: 2,
@@ -394,7 +440,7 @@ const styles = StyleSheet.create({
     width: "85%",
     height: 40,
     marginTop: 20,
-    borderRadius: 5,
+    borderRadius: 100,
     justifyContent: "center",
     alignItems: "center",
   },

@@ -83,10 +83,8 @@ export const getPosts = () => {
           response: error.message,
         });
       });
-    if (firebase.auth().currentUser != null) {
-      getArchivedPosts(dispatch);
-      getSoldPosts(dispatch);
-    }
+    getArchivedPosts(dispatch);
+    getSoldPosts(dispatch);
   };
 };
 
@@ -365,78 +363,86 @@ export const updatePost = (data) => {
                 index == data.tempImages.length - 1 &&
                 serial == retData.images.length - 1
               ) {
-                //deleting
-                retData.images.map((Item) => {
-                  if (commonFiles.includes(Item.image)) {
-                    console.log("keep file");
-                  } else {
-                    firebase
-                      .storage()
-                      .ref()
-                      .child(`images/${Item.filename}`)
-                      .delete()
-                      .then(() => {
-                        console.log("deleted");
-                        imageArray.map((img_, index_) => {
-                          if (Item.image == img_.image) {
-                            imageArray.splice(index_, 1);
-                            count = count - 1;
-                            if (count == 0) {
-                              uploadFiles();
-                            }
-                          }
-                        });
-                      })
-                      .catch((error) => {
-                        console.log(error);
-                        dispatch({
-                          type: postConstants.POST_FAILURE,
-                          response: error.message,
-                        });
-                      });
-                  }
-                });
-
                 //uploading
                 const uploadFiles = async () => {
                   count = data.tempImages.length - commonFiles.length;
-                  for (let c = 0; c < data.tempImages.length; c++) {
-                    if (commonFiles.includes(data.tempImages[c].image)) {
-                      console.log("file exists");
-                    } else {
-                      const response = await fetch(data.tempImages[c].image);
-                      const blob = await response.blob();
-                      const ref = firebase
-                        .storage()
-                        .ref()
-                        .child(`images/${data.tempImages[c].filename}`);
-                      //put image from blob
-                      ref.put(blob).then(() => {
-                        ref
-                          .getDownloadURL()
-                          .then((url) => {
-                            console.log(url);
-                            var imgObj = {
-                              image: url,
-                              filename: data.tempImages[c].filename,
-                            };
-                            imageArray.push(imgObj);
-                            count = count - 1;
-                            if (count == 0) {
-                              updatePostDoc(imageArray);
-                            }
-                          })
-                          .catch((error) => {
-                            console.log(error);
-                            dispatch({
-                              type: postConstants.POST_FAILURE,
-                              response: error.message,
+                  if (count == 0) {
+                    updatePostDoc(imageArray);
+                  } else {
+                    for (let c = 0; c < data.tempImages.length; c++) {
+                      if (commonFiles.includes(data.tempImages[c].image)) {
+                        console.log("file exists");
+                      } else {
+                        const response = await fetch(data.tempImages[c].image);
+                        const blob = await response.blob();
+                        const ref = firebase
+                          .storage()
+                          .ref()
+                          .child(`images/${data.tempImages[c].filename}`);
+                        //put image from blob
+                        ref.put(blob).then(() => {
+                          ref
+                            .getDownloadURL()
+                            .then((url) => {
+                              console.log(url);
+                              var imgObj = {
+                                image: url,
+                                filename: data.tempImages[c].filename,
+                              };
+                              imageArray.push(imgObj);
+                              count = count - 1;
+                              if (count == 0) {
+                                updatePostDoc(imageArray);
+                              }
+                            })
+                            .catch((error) => {
+                              console.log(error);
+                              dispatch({
+                                type: postConstants.POST_FAILURE,
+                                response: error.message,
+                              });
                             });
-                          });
-                      });
+                        });
+                      }
                     }
                   }
                 };
+
+                //deleting
+                if (count == 0) {
+                  uploadFiles();
+                } else {
+                  retData.images.map((Item) => {
+                    if (commonFiles.includes(Item.image)) {
+                      console.log("keep file");
+                    } else {
+                      firebase
+                        .storage()
+                        .ref()
+                        .child(`images/${Item.filename}`)
+                        .delete()
+                        .then(() => {
+                          console.log("deleted");
+                          imageArray.map((img_, index_) => {
+                            if (Item.image == img_.image) {
+                              imageArray.splice(index_, 1);
+                              count = count - 1;
+                              if (count == 0) {
+                                uploadFiles();
+                              }
+                            }
+                          });
+                        })
+                        .catch((error) => {
+                          console.log(error);
+                          dispatch({
+                            type: postConstants.POST_FAILURE,
+                            response: error.message,
+                          });
+                        });
+                    }
+                  });
+                }
               }
             });
           });

@@ -19,8 +19,7 @@ import ItemScreen from "./app/screens/ItemScreen";
 import EditPostScreen from "./app/screens/EditPostScreen";
 import { loggedInState } from "./app/actions/auth.action";
 import { getCategories, getLocations, getPosts } from "./app/actions";
-import { postConstants } from "./app/actions/constants";
-
+import { authConstants, postConstants } from "./app/actions/constants";
 //firebase configuration
 const firebaseConfig = {
   apiKey: "AIzaSyAxv1htxrWgbyMXdDJiLoDvo5yoCYHSvt4",
@@ -148,9 +147,36 @@ const Checkreveal = (props) => {
 const App = () => {
   const dispatch = useDispatch();
   const [loaded, setLoaded] = useState(false);
+  const [response, setResponse] = useState(false);
   const [postDone, setPostDone] = useState(false);
   const auth = useSelector((state) => state.auth);
   const post = useSelector((state) => state.post);
+
+  useEffect(() => {
+    if (firebase.auth().currentUser != null) {
+      const unsubscribe = firebase
+        .firestore()
+        .collection("users")
+        .doc(firebase.auth().currentUser.uid)
+        .onSnapshot((snap) => {
+          const data = snap.data();
+          console.log(data);
+          if (data.boughtList != null && data.boughtList != undefined) {
+            dispatch({
+              type: authConstants.BOUGHT_SUCCESS,
+              boughtList: data.boughtList,
+            });
+          } else {
+            dispatch({
+              type: authConstants.BOUGHT_SUCCESS,
+              boughtList: [],
+            });
+          }
+        });
+
+      return () => unsubscribe();
+    }
+  }, []);
 
   useEffect(() => {
     let mounted = true;
@@ -190,6 +216,15 @@ const App = () => {
     return () => (mounted = false);
   }, [post.render, loaded]);
 
+  useEffect(() => {
+    if (post.message != "" && post.result == false) {
+      setResponse(true);
+    }
+    setTimeout(() => {
+      setResponse(false);
+    }, 3000);
+  }, [post.message]);
+
   if (auth.loggedIn == false) {
     return (
       <>
@@ -203,6 +238,7 @@ const App = () => {
             </View>
           </View>
         ) : null}
+
         <NavigationContainer>
           <Stack.Navigator
             // initialRouteName="welcome"
@@ -230,6 +266,23 @@ const App = () => {
             </View>
           </View>
         ) : null}
+
+        {response ? (
+          <>
+            <View style={styles.responseBG}></View>
+            <View style={styles.responseWrapper}>
+              <Text
+                style={{
+                  ...styles.responseText,
+                  color: post.result ? colors.theme : "tomato",
+                }}
+              >
+                {post.message}
+              </Text>
+            </View>
+          </>
+        ) : null}
+
         {postDone == true ? (
           <View style={styles.checkLoaderWrapper}>
             <Checkmark style={styles.checkLoader}>
@@ -307,6 +360,33 @@ const styles = StyleSheet.create({
     borderRadius: 5,
     marginHorizontal: 5,
     backgroundColor: colors.accent,
+  },
+  responseBG: {
+    position: "absolute",
+    width: "100%",
+    height: "100%",
+    padding: 10,
+    top: 0,
+    alignSelf: "center",
+    elevation: 5,
+    backgroundColor: colors.contrast,
+    opacity: 0.8,
+  },
+  responseWrapper: {
+    position: "absolute",
+    width: 350,
+    minHeight: 120,
+    padding: 10,
+    top: Dimensions.get("screen").height / 2 - 60,
+    alignSelf: "center",
+    justifyContent: "center",
+    elevation: 5,
+    backgroundColor: colors.accent,
+    borderRadius: 10,
+  },
+  responseText: {
+    fontSize: 18,
+    textAlign: "center",
   },
 });
 

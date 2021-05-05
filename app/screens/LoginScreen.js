@@ -9,10 +9,11 @@ import {
   Image,
   Dimensions,
 } from "react-native";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { login } from "../actions/auth.action";
 import { FontAwesome5, Ionicons } from "@expo/vector-icons";
 import colors from "../colors";
+import { ScrollView } from "react-native-gesture-handler";
 
 const ScaleInView = (props) => {
   const scaleAnim = useRef(new Animated.Value(1.5)).current;
@@ -20,6 +21,7 @@ const ScaleInView = (props) => {
   useEffect(() => {
     Animated.timing(scaleAnim, {
       toValue: 0.78,
+      // toValue: 1,
       duration: 1000,
       useNativeDriver: true,
     }).start();
@@ -39,6 +41,9 @@ const ScaleInView = (props) => {
 
 const LoginScreen = ({ navigation, props }) => {
   const dispatch = useDispatch();
+  const auth = useSelector((state) => state.auth);
+  const [didMount, setDidMount] = useState(false);
+  const [response, setResponse] = useState(false);
   const [focused, setFocused] = useState(0);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -47,6 +52,26 @@ const LoginScreen = ({ navigation, props }) => {
   const [passwordError, setPasswordError] = useState("");
 
   const userData = { email, password };
+
+  useEffect(() => {
+    setDidMount(true);
+    return () => setDidMount(false);
+  }, []);
+
+  useEffect(() => {
+    if (didMount == true) {
+      if (
+        auth.message != null &&
+        auth.message != "session expired!" &&
+        auth.result == false
+      ) {
+        setResponse(true);
+      }
+      setTimeout(() => {
+        setResponse(false);
+      }, 4000);
+    }
+  }, [auth.message, didMount]);
 
   const handleLogin = () => {
     const warning = "this field is required!";
@@ -65,104 +90,124 @@ const LoginScreen = ({ navigation, props }) => {
   return (
     <View style={styles.wrapper}>
       <ScaleInView style={styles.upperCircle}></ScaleInView>
-
-      <Text style={styles.title}>LOG IN</Text>
-
-      <View
-        style={
-          focused == 1 ? styles.inputContainerFocused : styles.inputContainer
-        }
+      <ScrollView
+        contentContainerStyle={styles.scrollArea}
+        showsVerticalScrollIndicator={false}
       >
-        <Ionicons
-          name="mail-outline"
-          size={24}
-          color={focused == 1 ? colors.primary : colors.theme}
-        />
-        <TextInput
-          placeholder="email"
-          autoCapitalize="none"
-          autoCompleteType="email"
-          autoCorrect={false}
-          onFocus={() => setFocused(1)}
-          onBlur={() => setFocused(0)}
-          style={focused == 1 ? styles.inputBoxFocused : styles.inputBox}
-          onChangeText={(e) => {
-            setEmail(e);
-            if (e != "") {
-              setEmailError("");
-            }
-          }}
-        />
-      </View>
+        <Text style={styles.title}>LOG IN</Text>
 
-      {emailError === "" ? null : (
-        <Text style={styles.inputMsg}>{emailError}</Text>
-      )}
-
-      <View
-        style={
-          focused == 2 ? styles.inputContainerFocused : styles.inputContainer
-        }
-      >
-        <Ionicons
-          name="key-outline"
-          size={24}
-          color={focused == 2 ? colors.primary : colors.theme}
-        />
-        <TextInput
-          placeholder="password"
-          autoCapitalize="none"
-          autoCorrect={false}
-          secureTextEntry={true}
-          onFocus={() => setFocused(2)}
-          onBlur={() => setFocused(0)}
-          style={focused == 2 ? styles.inputBoxFocused : styles.inputBox}
-          onChangeText={(e) => {
-            setPassword(e);
-            if (e != "") {
-              setPasswordError("");
-            }
-          }}
-        />
-      </View>
-
-      {passwordError === "" ? null : (
-        <Text style={styles.inputMsg}>{passwordError}</Text>
-      )}
-
-      <Pressable onPress={handleLogin} style={styles.loginBtn}>
-        <Text style={styles.btnText}>login</Text>
-      </Pressable>
-
-      <Pressable onPress={() => navigation.navigate("register")}>
-        <Text style={styles.regLink}>new user? create an account</Text>
-      </Pressable>
-
-      <Text style={{ fontSize: 18, marginTop: 35, marginBottom: 10 }}>
-        or continue with
-      </Text>
-
-      <View style={styles.iconsBox}>
-        <Pressable onPress={() => console.log("login with google")}>
-          <Image
-            source={require("../assets/google.png")}
-            style={styles.gLogo}
+        <View
+          style={
+            focused == 1 ? styles.inputContainerFocused : styles.inputContainer
+          }
+        >
+          <Ionicons
+            name="mail-outline"
+            size={24}
+            color={focused == 1 ? colors.primary : colors.theme}
           />
+          <TextInput
+            placeholder="email"
+            autoCapitalize="none"
+            autoCompleteType="email"
+            autoCorrect={false}
+            onFocus={() => setFocused(1)}
+            onBlur={() => setFocused(0)}
+            style={focused == 1 ? styles.inputBoxFocused : styles.inputBox}
+            onChangeText={(e) => {
+              setEmail(e);
+              if (e != "") {
+                setEmailError("");
+              }
+            }}
+          />
+        </View>
+
+        {emailError === "" ? null : (
+          <Text style={styles.inputMsg}>{emailError}</Text>
+        )}
+
+        <View
+          style={
+            focused == 2 ? styles.inputContainerFocused : styles.inputContainer
+          }
+        >
+          <Ionicons
+            name="key-outline"
+            size={24}
+            color={focused == 2 ? colors.primary : colors.theme}
+          />
+          <TextInput
+            placeholder="password"
+            autoCapitalize="none"
+            autoCorrect={false}
+            secureTextEntry={true}
+            onFocus={() => setFocused(2)}
+            onBlur={() => setFocused(0)}
+            style={focused == 2 ? styles.inputBoxFocused : styles.inputBox}
+            onChangeText={(e) => {
+              setPassword(e);
+              if (e != "") {
+                setPasswordError("");
+              }
+            }}
+          />
+        </View>
+
+        {passwordError === "" ? null : (
+          <Text style={styles.inputMsg}>{passwordError}</Text>
+        )}
+
+        <Pressable onPress={handleLogin} style={styles.loginBtn}>
+          <Text style={styles.btnText}>login</Text>
         </Pressable>
-        <Pressable onPress={() => console.log("login with facebook")}>
-          <FontAwesome5 name="facebook" size={39} color="#3b5998" />
+
+        {response ? (
+          <View style={{ marginTop: 25, paddingHorizontal: 10 }}>
+            <Text
+              style={{ fontSize: 18, color: "tomato", textAlign: "center" }}
+            >
+              {auth.message}
+            </Text>
+          </View>
+        ) : null}
+
+        <Pressable onPress={() => navigation.navigate("register")}>
+          <Text style={styles.regLink}>new user? create an account</Text>
         </Pressable>
-      </View>
+
+        <Text style={{ fontSize: 18, marginTop: 35, marginBottom: 10 }}>
+          or continue with
+        </Text>
+
+        <View style={styles.iconsBox}>
+          <Pressable onPress={() => console.log("login with google")}>
+            <Image
+              source={require("../assets/google.png")}
+              style={styles.gLogo}
+            />
+          </Pressable>
+          <Pressable onPress={() => console.log("login with facebook")}>
+            <FontAwesome5 name="facebook" size={39} color="#3b5998" />
+          </Pressable>
+        </View>
+      </ScrollView>
     </View>
   );
 };
 
 const styles = StyleSheet.create({
   wrapper: {
-    flex: 1,
-    justifyContent: "center",
+    width: Dimensions.get("screen").width,
+    height: "100%",
     alignItems: "center",
     backgroundColor: colors.accent,
+  },
+  scrollArea: {
+    width: Dimensions.get("screen").width,
+    alignItems: "center",
+    justifyContent: "center",
+    height: Dimensions.get("window").height,
   },
   upperCircle: {
     backgroundColor: colors.theme,
@@ -170,7 +215,9 @@ const styles = StyleSheet.create({
     height: Dimensions.get("window").width * 5,
     width: Dimensions.get("window").width * 5,
     borderRadius: Dimensions.get("window").width * 2.5,
-    bottom: "50%",
+    top:
+      -(Dimensions.get("window").width * 5) +
+      Dimensions.get("window").height * 0.5,
     justifyContent: "center",
     alignItems: "center",
     elevation: 2,
@@ -227,7 +274,7 @@ const styles = StyleSheet.create({
     width: "85%",
     height: 40,
     marginTop: 20,
-    borderRadius: 5,
+    borderRadius: 100,
     justifyContent: "center",
     alignItems: "center",
   },

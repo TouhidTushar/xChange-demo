@@ -27,7 +27,7 @@ const SlideView = (props) => {
   useEffect(() => {
     Animated.timing(slideAnim, {
       toValue: Dimensions.get("window").width * 0.85,
-      duration: 500,
+      duration: 250,
       useNativeDriver: false,
     }).start();
   }, [slideAnim]);
@@ -51,7 +51,7 @@ const DelayedView = (props) => {
   useEffect(() => {
     Animated.timing(delayAnim, {
       toValue: 1,
-      delay: 500,
+      delay: 250,
       duration: 100,
       useNativeDriver: false,
     }).start();
@@ -63,6 +63,30 @@ const DelayedView = (props) => {
         marginHorizontal: 8,
         flexDirection: "row",
         transform: [{ scale: delayAnim }],
+      }}
+    >
+      {props.children}
+    </Animated.View>
+  );
+};
+
+//animation 3
+const ScaleView = (props) => {
+  const scaleAnim = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    Animated.timing(scaleAnim, {
+      toValue: 130,
+      duration: 250,
+      useNativeDriver: false,
+    }).start();
+  }, [scaleAnim]);
+
+  return (
+    <Animated.View
+      style={{
+        ...props.style,
+        height: scaleAnim,
       }}
     >
       {props.children}
@@ -170,6 +194,7 @@ const PostingScreen = ({ navigation, props }) => {
       setFocused(0);
     } else {
       setCatDrop(true);
+      setLocDrop(false);
       setFocused(2);
     }
   };
@@ -187,6 +212,7 @@ const PostingScreen = ({ navigation, props }) => {
       setFocused(0);
     } else {
       setLocDrop(true);
+      setCatDrop(false);
       setFocused(4);
     }
   };
@@ -410,22 +436,24 @@ const PostingScreen = ({ navigation, props }) => {
         </Pressable>
 
         {catDrop ? (
-          <ScrollView
-            style={styles.selectWrapper}
-            showsVerticalScrollIndicator={false}
-          >
-            {categories.map((item, index) => {
-              return (
-                <Pressable
-                  key={item.name + index}
-                  style={styles.selectBtns}
-                  onPress={() => handleCatSelection(item.name)}
-                >
-                  <Text style={styles.selectText}>{item.name}</Text>
-                </Pressable>
-              );
-            })}
-          </ScrollView>
+          <ScaleView style={styles.selectContainer}>
+            <ScrollView
+              style={styles.selectWrapper}
+              showsVerticalScrollIndicator={false}
+            >
+              {categories.map((item, index) => {
+                return (
+                  <Pressable
+                    key={item.name + index}
+                    style={styles.selectBtns}
+                    onPress={() => handleCatSelection(item.name)}
+                  >
+                    <Text style={styles.selectText}>{item.name}</Text>
+                  </Pressable>
+                );
+              })}
+            </ScrollView>
+          </ScaleView>
         ) : null}
 
         {/* description box */}
@@ -496,22 +524,24 @@ const PostingScreen = ({ navigation, props }) => {
         </Pressable>
 
         {locDrop ? (
-          <ScrollView
-            style={styles.selectWrapper}
-            showsVerticalScrollIndicator={false}
-          >
-            {locations.map((item, index) => {
-              return (
-                <Pressable
-                  key={item.name + index}
-                  style={styles.selectBtns}
-                  onPress={() => handleLocSelection(item.name)}
-                >
-                  <Text style={styles.selectText}>{item.name}</Text>
-                </Pressable>
-              );
-            })}
-          </ScrollView>
+          <ScaleView style={styles.selectContainer}>
+            <ScrollView
+              style={styles.selectWrapper}
+              showsVerticalScrollIndicator={false}
+            >
+              {locations.map((item, index) => {
+                return (
+                  <Pressable
+                    key={item.name + index}
+                    style={styles.selectBtns}
+                    onPress={() => handleLocSelection(item.name)}
+                  >
+                    <Text style={styles.selectText}>{item.name}</Text>
+                  </Pressable>
+                );
+              })}
+            </ScrollView>
+          </ScaleView>
         ) : null}
 
         {/* price input */}
@@ -836,13 +866,19 @@ const styles = StyleSheet.create({
     paddingLeft: 5,
     textAlignVertical: "top",
   },
-  selectWrapper: {
+  selectContainer: {
     width: "72%",
     backgroundColor: colors.accent,
     borderBottomLeftRadius: 5,
     borderBottomRightRadius: 5,
     elevation: 5,
     marginLeft: "9%",
+  },
+  selectWrapper: {
+    width: "100%",
+    backgroundColor: colors.accent,
+    borderBottomLeftRadius: 5,
+    borderBottomRightRadius: 5,
     paddingHorizontal: 10,
     paddingBottom: 10,
     height: 130,
@@ -895,7 +931,7 @@ const styles = StyleSheet.create({
     width: "85%",
     height: 40,
     marginTop: 15,
-    borderRadius: 5,
+    borderRadius: 100,
     justifyContent: "center",
     alignItems: "center",
   },

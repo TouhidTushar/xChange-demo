@@ -22,6 +22,7 @@ import {
   removeFromWatch,
 } from "../actions";
 import firebase from "firebase";
+import { LinearGradient } from "expo-linear-gradient";
 
 const LoaderView = (props) => {
   const loadingAnim = useRef(new Animated.Value(0)).current;
@@ -159,30 +160,50 @@ const PostCard = (props) => {
   return (
     <View style={styles.cardContainer}>
       {/* image section */}
+      <Image source={{ uri: data.images[0].image }} style={styles.imageBox} />
+
+      <LinearGradient
+        colors={["transparent", "rgba(0,0,0,0.8)"]}
+        style={styles.cardCover}
+      />
+
       <Pressable
+        style={styles.imageBtn}
         onPress={() => navigation.navigate("itemDetails", { item: data })}
-      >
-        <Image source={{ uri: data.images[0].image }} style={styles.imageBox} />
-      </Pressable>
+      ></Pressable>
 
       {/* other fields */}
-      <Pressable
-        onPress={() => navigation.navigate("itemDetails", { item: data })}
-        style={styles.overlay}
-      >
-        <Text style={styles.mainText}>{data.itemName}</Text>
-        <View style={styles.fieldsBox}>
-          <View style={styles.postfields}>
-            <Ionicons name="location-outline" size={18} color={colors.theme} />
-            <Text style={styles.subText}>{data.location}</Text>
+      {callModal ||
+      archiveModal ||
+      soldModalOne ||
+      soldModalTwo ||
+      soldModalThree ||
+      deleteModal ? null : (
+        <Pressable
+          onPress={() => navigation.navigate("itemDetails", { item: data })}
+          style={styles.overlay}
+        >
+          <Text style={styles.mainText}>{data.itemName}</Text>
+          <View style={styles.fieldsBox}>
+            <View style={styles.postfields}>
+              <Ionicons
+                name="location-outline"
+                size={18}
+                color={colors.theme}
+              />
+              <Text style={styles.subText}>{data.location}</Text>
+            </View>
+            <View style={styles.postfields}>
+              <Ionicons
+                name="pricetag-outline"
+                size={18}
+                color={colors.theme}
+              />
+              <Text style={styles.subText}>{data.price} BDT</Text>
+            </View>
           </View>
-          <View style={styles.postfields}>
-            <Ionicons name="pricetag-outline" size={18} color={colors.theme} />
-            <Text style={styles.subText}>{data.price} BDT</Text>
-          </View>
-        </View>
-      </Pressable>
-
+        </Pressable>
+      )}
       {/* action buttons */}
       {auth.loggedIn ? (
         firebase.auth().currentUser.uid == data.postedBy.userId ? (
@@ -196,7 +217,7 @@ const PostCard = (props) => {
                 style={styles.callIcon}
                 onPress={() => setPostControl(false)}
               >
-                <Ionicons name="close" size={24} color={colors.primary} />
+                <Ionicons name="close" size={24} color={colors.accent} />
               </Pressable>
             ) : (
               <Pressable
@@ -215,7 +236,7 @@ const PostCard = (props) => {
           <>
             {loadingIcon == true ? (
               <LoaderView style={styles.watchIcon}>
-                <AntDesign name="loading1" size={24} color={colors.primary} />
+                <AntDesign name="loading1" size={24} color={colors.accent} />
               </LoaderView>
             ) : auth.user.watchList == undefined ||
               auth.user.watchList == null ? (
@@ -232,7 +253,7 @@ const PostCard = (props) => {
                 onPress={handleRemoveFromWatchlist}
                 style={styles.watchIcon}
               >
-                <Ionicons name="eye" size={24} color={colors.primary} />
+                <Ionicons name="eye" size={24} color={colors.accent} />
               </Pressable>
             ) : (
               <Pressable
@@ -288,8 +309,9 @@ const PostCard = (props) => {
         <>
           <View style={styles.modalBG}></View>
           <View style={styles.modalWrapper}>
-            <Text style={styles.modalText}>
-              Are you sure you want to delete this post?
+            <Text style={{ ...styles.modalText, color: "tomato" }}>
+              Your post will be deleted permanently. Are you sure you want to
+              delete this post?
             </Text>
             <View style={styles.modalBtns}>
               <Pressable
@@ -432,7 +454,7 @@ const PostCard = (props) => {
                     backgroundColor: colors.theme,
                     paddingVertical: 7,
                     marginTop: 20,
-                    borderRadius: 5,
+                    borderRadius: 100,
                   }}
                   onPress={handleSoldToUser}
                 >
@@ -515,7 +537,7 @@ const PostCard = (props) => {
                     backgroundColor: colors.theme,
                     paddingVertical: 7,
                     marginTop: 20,
-                    borderRadius: 5,
+                    borderRadius: 100,
                   }}
                   onPress={handleSoldToGuest}
                 >
@@ -565,7 +587,11 @@ const PostCard = (props) => {
               }}
             >
               <View style={styles.postControlBtns}>
-                <Ionicons name="create-outline" size={24} color="black" />
+                <Ionicons
+                  name="create-outline"
+                  size={24}
+                  color={colors.accent}
+                />
                 <Text style={styles.controlBtnText}>Edit</Text>
               </View>
             </Pressable>
@@ -576,10 +602,12 @@ const PostCard = (props) => {
               }}
             >
               <View style={styles.postControlBtns}>
-                <Ionicons name="trash-outline" size={24} color="tomato" />
-                <Text style={{ ...styles.controlBtnText, color: "tomato" }}>
-                  Delete
-                </Text>
+                <Ionicons
+                  name="trash-outline"
+                  size={24}
+                  color={colors.accent}
+                />
+                <Text style={styles.controlBtnText}>Delete</Text>
               </View>
             </Pressable>
             <Pressable
@@ -589,7 +617,11 @@ const PostCard = (props) => {
               }}
             >
               <View style={styles.postControlBtns}>
-                <Ionicons name="archive-outline" size={24} color="black" />
+                <Ionicons
+                  name="archive-outline"
+                  size={24}
+                  color={colors.accent}
+                />
                 <Text style={styles.controlBtnText}>Archive</Text>
               </View>
             </Pressable>
@@ -603,7 +635,7 @@ const PostCard = (props) => {
                 <Ionicons
                   name="checkmark-done-outline"
                   size={24}
-                  color="black"
+                  color={colors.accent}
                 />
                 <Text style={styles.controlBtnText}>Mark as sold</Text>
               </View>
@@ -611,7 +643,7 @@ const PostCard = (props) => {
             <Ionicons
               name="caret-down"
               size={30}
-              color={colors.accent}
+              color={colors.theme}
               style={styles.tooltip}
             />
           </View>
@@ -623,22 +655,39 @@ const PostCard = (props) => {
 
 const styles = StyleSheet.create({
   cardContainer: {
-    width: Dimensions.get("window").width * 0.9,
+    width: Dimensions.get("window").width * 0.94,
     elevation: 5,
     alignItems: "center",
-    marginVertical: 15,
-    padding: 8,
+    marginVertical: 10,
     borderRadius: 10,
     backgroundColor: colors.accent,
   },
-  imageBox: {
-    width: Dimensions.get("window").width * 0.9 - 16,
-    height: Dimensions.get("window").width * 0.8 * 0.75,
+  cardCover: {
+    width: Dimensions.get("window").width * 0.94,
+    height: Dimensions.get("window").width * 0.94 * 0.75,
+    position: "absolute",
     borderRadius: 10,
   },
+  imageBox: {
+    width: Dimensions.get("window").width * 0.94,
+    height: Dimensions.get("window").width * 0.94 * 0.75,
+    borderRadius: 10,
+  },
+  imageBtn: {
+    width: Dimensions.get("window").width * 0.94,
+    height: Dimensions.get("window").width * 0.94 * 0.75,
+    position: "absolute",
+    borderRadius: 10,
+    top: 0,
+    left: 0,
+  },
   overlay: {
+    position: "absolute",
+    bottom: 0,
+    left: 0,
     width: "100%",
-    paddingTop: 10,
+    paddingLeft: 8,
+    paddingBottom: 12,
   },
   fieldsBox: {
     flexDirection: "row",
@@ -651,7 +700,7 @@ const styles = StyleSheet.create({
   },
   mainText: {
     fontSize: 20,
-    color: colors.contrast,
+    color: colors.accent,
     marginLeft: 5,
   },
   subText: {
@@ -659,36 +708,35 @@ const styles = StyleSheet.create({
     color: colors.theme,
   },
   callIcon: {
-    backgroundColor: colors.accent,
     position: "absolute",
     bottom: 8,
     right: 8,
     padding: 5,
   },
   watchIcon: {
-    backgroundColor: colors.accent,
     position: "absolute",
     bottom: 8,
     right: 50,
     padding: 5,
   },
   modalBG: {
-    width: Dimensions.get("window").width * 0.9 - 16,
-    height: Dimensions.get("window").width * 0.8 * 0.75,
+    width: Dimensions.get("window").width * 0.94,
+    height: Dimensions.get("window").width * 0.94 * 0.75,
     borderRadius: 10,
     position: "absolute",
     backgroundColor: colors.contrast,
     opacity: 0.7,
-    top: 8,
-    left: 8,
+    top: 0,
+    left: 0,
   },
   modalWrapper: {
-    width: Dimensions.get("window").width * 0.9 - 16,
-    height: Dimensions.get("window").width * 0.8 * 0.75,
+    width: Dimensions.get("window").width * 0.94,
+    height: Dimensions.get("window").width * 0.94 * 0.75,
     borderRadius: 10,
+    paddingHorizontal: 5,
     position: "absolute",
-    top: 8,
-    left: 8,
+    top: 0,
+    left: 0,
     justifyContent: "center",
     alignItems: "center",
   },
@@ -716,10 +764,10 @@ const styles = StyleSheet.create({
   postControlPanel: {
     position: "absolute",
     bottom: 55,
-    right: -10,
+    right: -5,
     width: 128,
     padding: 8,
-    backgroundColor: colors.accent,
+    backgroundColor: colors.theme,
     borderRadius: 5,
     elevation: 5,
   },
@@ -731,17 +779,12 @@ const styles = StyleSheet.create({
   controlBtnText: {
     fontSize: 16,
     marginLeft: 3,
+    color: colors.accent,
   },
   tooltip: {
     position: "absolute",
     bottom: -21,
-    right: 21,
-    textShadowColor: "#DDD",
-    textShadowOffset: {
-      height: 2,
-      width: 0,
-    },
-    textShadowRadius: 1,
+    right: 14.5,
   },
   inputContainer: {
     marginTop: 20,
