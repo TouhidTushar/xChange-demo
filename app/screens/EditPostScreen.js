@@ -309,9 +309,8 @@ const EditPostScreen = ({ route, navigation, props }) => {
   const handleLibPermission = () => {
     (async () => {
       if (Platform.OS !== "web") {
-        const {
-          status,
-        } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+        const { status } =
+          await ImagePicker.requestMediaLibraryPermissionsAsync();
         if (status !== "granted") {
           alert("Sorry, permission is required to upload images!");
         } else {
@@ -635,7 +634,7 @@ const EditPostScreen = ({ route, navigation, props }) => {
                       marginLeft: 3,
                     }}
                   >
-                    choose from files
+                    from files
                   </Text>
                 </Pressable>
               </DelayedView>
@@ -651,6 +650,7 @@ const EditPostScreen = ({ route, navigation, props }) => {
                       fontSize: 18,
                       color: colors.theme,
                       marginLeft: 3,
+                      marginRight: 10,
                     }}
                   >
                     take photo

@@ -20,15 +20,10 @@ import EditPostScreen from "./app/screens/EditPostScreen";
 import { loggedInState } from "./app/actions/auth.action";
 import { getCategories, getLocations, getPosts } from "./app/actions";
 import { authConstants, postConstants } from "./app/actions/constants";
+import { config } from "./config";
 //firebase configuration
 const firebaseConfig = {
-  apiKey: "AIzaSyAxv1htxrWgbyMXdDJiLoDvo5yoCYHSvt4",
-  authDomain: "xchange-demo.firebaseapp.com",
-  projectId: "xchange-demo",
-  storageBucket: "xchange-demo.appspot.com",
-  messagingSenderId: "896138425289",
-  appId: "1:896138425289:web:c45398ce96186deffdee18",
-  measurementId: "G-ZZX2QQ299C",
+  ...config,
 };
 if (firebase.apps.length === 0) {
   firebase.initializeApp(firebaseConfig);
