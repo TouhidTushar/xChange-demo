@@ -6,7 +6,6 @@ import store from "./app/store";
 import { Provider, useDispatch, useSelector } from "react-redux";
 import { NavigationContainer } from "@react-navigation/native";
 import { createStackNavigator } from "@react-navigation/stack";
-// import { StatusBar } from "expo-status-bar";
 import { Ionicons } from "@expo/vector-icons";
 import { StyleSheet, Text, View, Animated, Dimensions } from "react-native";
 import WelcomeScreen from "./app/screens/WelcomeScreen";
@@ -35,22 +34,6 @@ const Stack = createStackNavigator();
 const navigatorOptions = {
   headerShown: false,
   animationEnabled: false,
-  // cardStyle: { backgroundColor: colors.accent },
-  // cardStyleInterpolator: ({ current: { progress } }) => ({
-  //   cardStyle: {
-  //     opacity: progress.interpolate({
-  //       inputRange: [0, 1],
-  //       outputRange: [0, 1],
-  //     }),
-  //   },
-  //   overlayStyle: {
-  //     opacity: progress.interpolate({
-  //       inputRange: [0, 1],
-  //       outputRange: [0, 0.5],
-  //       extrapolate: "clamp",
-  //     }),
-  //   },
-  // }),
 };
 
 const Bubbles = (props) => {
